@@ -119,7 +119,7 @@ samtools index aligned/${smallBase}Aligned.sortedByCoord.out.bam
 bamCoverage -b aligned/${smallBase}Aligned.sortedByCoord.out.bam -o bigwig/${smallBase}.bw
 
 featureCounts -T 8 -s 0 \
-	-g gene_name -a /dartfs-hpc/rc/lab/W/WangX/Genomes_and_extra/hg38.knownGene.gtf \
+	-g gene_name -a /dartfs-hpc/rc/lab/W/WangX/Genomes_and_extra/gencode.v40.annotation.gtf.gz \
 	-o counts/${smallBase}_featurecounts.txt \
 	-p aligned/${smallBase}_sorted.bam
 
