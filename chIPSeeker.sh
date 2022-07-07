@@ -1,15 +1,24 @@
 #!/bin/bash
 
+# USAGE: 
+# This pipeline takes in one positional argument:
+# 	$1 - target folder
+
+# Runs ChIPSeeker and pathway analysis
+
+# Code taken from some Harvard tutorial that I should really refer back to
+
+# Version control available at https://docs.google.com/document/d/1lCYRKcYol6praX75HFxb90SaNrrugmx8aanxGQu3Ups/edit
+
 folder=$(cd "$(dirname "$0")";pwd)
 
 mkdir ChIPseeker
 
-for file in epic2/*.bed; #########IgG???
-do
-base=$(basename "$file" ".bed")
-if [[ $base != *_IgG* ]]; then
-mkdir ${folder}/ChIPseeker/${base}
-cat > ${folder}/PBS/${base}_ChIPseeker.r <<EOF
+for file in $1/*.bed; do
+  base=$(basename "$file" ".bed")
+  if [[ $base != *_IgG* ]]; then
+    mkdir ${folder}/ChIPseeker/${base}
+    cat > ${folder}/PBS/${base}_ChIPseeker.r <<EOF
 library(ChIPseeker)
 library(TxDb.Hsapiens.UCSC.hg38.knownGene)
 library(clusterProfiler)
@@ -18,7 +27,7 @@ library(org.Hs.eg.db)
 library(DOSE)
 library(dplyr)
 
-samplefiles <- list.files("$folder/epic2/", pattern= "${base}.bed", full.names=T)
+samplefiles <- list.files("$folder/$1/", pattern= "${base}.bed", full.names=T)
 samplefiles <- as.list(samplefiles)
 names(samplefiles) <- c("${base}")
 
@@ -52,7 +61,7 @@ entrez2gene <- grch38 %>% filter(entrez %in% entrezids) %>% dplyr::select(entrez
 
 # Match to each annotation dataframe
 m <- match(annot\$geneId, entrez2gene\$entrez)
-annot <- cbind(annot[,1:21], geneSymbol=entrez2gene\$symbol[m])
+annot <- cbind(annot[,1:21], geneSymbol=entrez2gene\$symbol[m])  # Known to break depending on amount of columns of annot. Fix?
 write.table(annot,file="$folder/ChIPseeker/${base}/${base}_annotation.txt", sep="\t", quote=F, row.names=F)
 
 entrezids <- annot\$geneId %>%
@@ -88,11 +97,9 @@ do = enrichDO(entrezids)
 pdf(file = "$folder/ChIPseeker/${base}/${base}_DO.pdf")
 dotplot(do, showCategory=20,font.size=6)
 dev.off()
-
-
 EOF
 
-cat >${folder}/PBS/${base}_ChIPseeker'.pbs' <<thisprogram
+    cat >${folder}/PBS/${base}_ChIPseeker'.pbs' <<EOF
 #!/bin/bash -l
 # Name of the job
 #SBATCH --job-name=${base}_ChIPSeeker # Name of the job
@@ -119,15 +126,13 @@ cat >${folder}/PBS/${base}_ChIPseeker'.pbs' <<thisprogram
 # Enter your code to run below #
 ################################
 cd ${folder}
-source activate choccy
+module load R/4.1.2
 
 Rscript ${folder}/PBS/${base}_ChIPseeker.r
+EOF
 
-thisprogram
-
-cd ${folder}/log
-
-sbatch ${folder}/PBS/${base}_ChIPseeker.pbs
-fi
+    cd ${folder}/log
+    sbatch ${folder}/PBS/${base}_ChIPseeker.pbs
+  fi
 done
 

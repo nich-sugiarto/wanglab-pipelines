@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Alignment pipeline for RNA data. Modified from existing pipeline 6/27/2022
-# Assumes that all fastq files are contained WITHIN THEIR OWN folder, and have suffix _1.fq.gz. See areas marked "CHANGE FOR FILE EXTENSION"
+# Assumes that all fastq files are contained in a fastq folder, and have suffix _1.fq.gz. See areas marked "CHANGE FOR FILE EXTENSION"
 # Stolen and later adapted from Ruoyun Wang
 
-# Requires the "vanilla" and "choccy" environments, and the "qc" environment (for fastqc and multiqc)
+# Requires the "vanilla" and "R" environments, and the "qc" environment (for fastqc and multiqc)
 
 # Version Doc: https://docs.google.com/document/d/1LL0hB4eDcqZ7_UmBX_KwyiYlm5r1fBio-Y4hdBUdZQw/edit
 
@@ -15,7 +15,6 @@ mkdir -p counts
 mkdir -p clumped
 mkdir -p trimmed
 mkdir -p aligned
-mkdir -p multiqc_report
 mkdir -p bigwig
 mkdir -p results
 mkdir -p PBS
@@ -23,24 +22,21 @@ mkdir -p log
 
 folder=$(cd "$(dirname "$0")";pwd)
 
-count=$(find ./ -mindepth 1 -type f -name "*_1.fq.gz" -printf x | wc -c)  # Finds total number of files matching extension. Needed to know when to start qc. CHANGE FOR FILE EXTENSION
+count=$(find ./ -mindepth 1 -type f -name "*1.fastq.gz" -printf x | wc -c)  # Finds total number of files matching extension. Needed to know when to start qc. CHANGE FOR FILE EXTENSION
 echo There are $count sets of files
 
 # Meta file to know when qc will begin (empty file)
 cat >${folder}/'meta.txt' <<EOF
 EOF
+cd fastq
+for file in *1.fastq.gz  # CHANGE FOR FILE EXTENSION
+do
 
-for rep in *_WGS  # CHANGE FOR FILE EXTENSION
-	do
-	cd ${folder}/${rep}
-		for file in *_1.fq.gz  # CHANGE FOR FILE EXTENSION
-		do
+	base=$(basename "$file" "_R1.fastq.gz")  # CHANGE FOR FILE EXTENSION]
+	smallBase=${base%_S1*}
+	echo ${smallBase}
 
-		base=$(basename "$file" "_1.fq.gz")  # CHANGE FOR FILE EXTENSION
-		smallBase=${base%_WGS*}
-		echo File number ${token}: ${smallBase}
-
-		cat >${folder}/counts/${smallBase}_RPKM'.R' <<EOF
+	cat >${folder}/counts/${smallBase}_RPKM'.R' <<EOF
 library(edgeR)
 leng <- read.table("${smallBase}_featurecounts_Length.txt",header = TRUE,skip=1)
 data <- read.table("${smallBase}_featurecounts_Count.txt",header = TRUE,skip=1)
@@ -53,7 +49,7 @@ final<- data.frame(geneid,data,rpkm)
 write.table(final,file="${smallBase}_RPKM.csv",row.names = FALSE,quote = FALSE,sep = ",")
 EOF
 
-		cat >${folder}/PBS/$smallBase'.sbatch' <<EOF
+	cat >${folder}/PBS/$smallBase'.sbatch' <<EOF
 #!/bin/bash -l
 # Name of the job
 #SBATCH --job-name=${smallBase}_alignment # Name of the job
@@ -88,8 +84,8 @@ mkdir -p fastqc
 
 # CHANGE FOR FILE EXTENSION
 clumpify.sh \
-	in1=${folder}/${rep}/${base}_1.fq.gz \
-	in2=${folder}/${rep}/${base}_2.fq.gz \
+	in1=${folder}/${base}_1.fq.gz \
+	in2=${folder}/${base}_2.fq.gz \
 	out1=clumped/${smallBase}_R1_clumped.fastq.gz \
 	out2=clumped/${smallBase}_R2_clumped.fastq.gz 
 	
@@ -103,6 +99,8 @@ bbduk.sh \
 	ref=/dartfs-hpc/rc/lab/W/WangX/Nicholas/bbmap/resources/adapters.fa \
 	ktrim=r k=21 mink=11 hdist=1 tpe tbo
 
+rm clumped/${smallBase}*
+
 STAR \
 	--genomeDir /dartfs-hpc/rc/lab/W/WangX/Genomes_and_extra/hg38_STAR  \
 	--runThreadN 8 \
@@ -113,9 +111,9 @@ STAR \
 	--outSAMattributes Standard
 
 rm -r aligned/${smallBase}_STARtmp
+rm trimmed/${smallBase}*
 
 samtools sort -n -o aligned/${smallBase}_sorted.bam aligned/${smallBase}Aligned.sortedByCoord.out.bam
-
 samtools index aligned/${smallBase}Aligned.sortedByCoord.out.bam
 
 bamCoverage -b aligned/${smallBase}Aligned.sortedByCoord.out.bam -o bigwig/${smallBase}.bw
@@ -133,11 +131,8 @@ cut -f 7 ${smallBase}_featurecounts.txt > ${smallBase}_featurecounts_Count.txt
 cut -f 1 ${smallBase}_featurecounts.txt > ${smallBase}_featurecounts_Name.txt
 cut -f 6 ${smallBase}_featurecounts.txt > ${smallBase}_featurecounts_Length.txt
 
-source activate choccy
+source activate R
 Rscript ${smallBase}_RPKM.R
-
-rm -r clumped/
-rm -r trimmed/
 
 echo "${smallBase} completed!" >> ${folder}/'meta.txt'
 
@@ -146,11 +141,13 @@ echo "${smallBase} completed!" >> ${folder}/'meta.txt'
 # (requires access to Nick's pipeline folder)
 
 currLine=$(wc -l < ${folder}/meta.txt)
-if ((\$currLine == (($count + 1))));
+if ((\$currLine == $count));
 then
     cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/sugiarto_qc.sh ${folder}
     sh sugiarto_qc_folder.sh
     rm ${folder}/meta.txt
+	rmdir clumped/
+	rmdir trimmed/
 fi
 EOF
 
@@ -158,5 +155,4 @@ EOF
 
 	sbatch ${folder}/PBS/$smallBase'.sbatch'
 	cd ${folder}
-	done
 done
