@@ -30,7 +30,7 @@ cat >${folder}/PBS/'fastqc.pbs' <<EOF
 #SBATCH --ntasks-per-node=1
 
 # Walltime (job duration)
-#SBATCH --time=2:00:00
+#SBATCH --time=24:00:00
 
 # Name of the output files to be created. If not specified the outputs will be joined
 #SBATCH --output=fastqc.%j.out
@@ -53,7 +53,7 @@ fastqc -o fastqc/fastq fastq/*
 multiqc -f -o multiqc -n fastq fastqc/fastq/
 
 # bam files
-fastqc -o fastqc/bam aligned/*.bam fastqc/fastq
+fastqc -o fastqc/bam aligned/*.bam
 multiqc -f -o multiqc -n bam fastqc/bam/
 EOF
 cd log

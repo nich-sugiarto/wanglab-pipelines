@@ -56,59 +56,64 @@ cd ${folder}
 ################################
 source activate vanilla
 
-clumpify.sh \
-	in1=./fastq/${base}${suffix1} \
-	in2=./fastq/${base}${suffix2} \
-	out1=deduplicated/${smallBase}_dedup${suffix1} \
-	out2=deduplicated/${smallBase}_dedup${suffix2} \
-	dedupe subs=2
+# clumpify.sh \
+# 	in1=./fastq/${base}${suffix1} \
+# 	in2=./fastq/${base}${suffix2} \
+# 	out1=deduplicated/${smallBase}_dedup${suffix1} \
+# 	out2=deduplicated/${smallBase}_dedup${suffix2} \
+# 	dedupe subs=2
 
-gunzip -c deduplicated/${smallBase}_dedup${suffix1} > deduplicated/${smallBase}_dedup_R1.fastq
-gunzip -c deduplicated/${smallBase}_dedup${suffix2} > deduplicated/${smallBase}_dedup_R2.fastq
+# gunzip -c deduplicated/${smallBase}_dedup${suffix1} > deduplicated/${smallBase}_dedup_R1.fastq
+# gunzip -c deduplicated/${smallBase}_dedup${suffix2} > deduplicated/${smallBase}_dedup_R2.fastq
 
-bbduk.sh \
-	in1=deduplicated/${smallBase}_dedup_R1.fastq \
-	in2=deduplicated/${smallBase}_dedup_R2.fastq \
-	out1=trimmed/${smallBase}_R1_trimmed.fastq \
-	out2=trimmed/${smallBase}_R2_trimmed.fastq \
-	ref=/dartfs-hpc/rc/lab/W/WangX/Nicholas/bbmap/resources/adapters.fa \
-	ktrim=r k=21 mink=11 hdist=1 tpe tbo
+# bbduk.sh \
+# 	in1=deduplicated/${smallBase}_dedup_R1.fastq \
+# 	in2=deduplicated/${smallBase}_dedup_R2.fastq \
+# 	out1=trimmed/${smallBase}_R1_trimmed.fastq \
+# 	out2=trimmed/${smallBase}_R2_trimmed.fastq \
+# 	ref=/dartfs-hpc/rc/lab/W/WangX/Nicholas/bbmap/resources/adapters.fa \
+# 	ktrim=r k=21 mink=11 hdist=1 tpe tbo
 
-rm deduplicated/${smallBase}_dedup*
+# rm deduplicated/${smallBase}_dedup*
 
-module load bowtie/2.2.7
+# module load bowtie/2.2.7
 
-bowtie2 -p 10 \
-	-x /dartfs-hpc/rc/lab/W/WangX/Genomes_and_extra/GRCh38/grch38_1kgmaj \
-	-1 trimmed/${smallBase}_R1_trimmed.fastq -2 trimmed/${smallBase}_R2_trimmed.fastq \
-	--very-sensitive -k 10 > aligned/${smallBase}.sam
+# bowtie2 -p 10 \
+# 	-x /dartfs-hpc/rc/lab/W/WangX/Genomes_and_extra/GRCh38/grch38_1kgmaj \
+# 	-1 trimmed/${smallBase}_R1_trimmed.fastq -2 trimmed/${smallBase}_R2_trimmed.fastq \
+# 	--very-sensitive -k 10 > aligned/${smallBase}.sam
 
-rm trimmed/${smallBase}_R1_trimmed.fastq trimmed/${smallBase}_R2_trimmed.fastq
+# rm trimmed/${smallBase}_R1_trimmed.fastq trimmed/${smallBase}_R2_trimmed.fastq
 
-samtools view -Sbo aligned/${smallBase}.bam aligned/${smallBase}.sam
+# samtools view -Sbo aligned/${smallBase}.bam aligned/${smallBase}.sam
 
-samtools view -h aligned/${smallBase}.bam | awk '{if(\$3 != "chrM" && \$3 != "chrUn"){print \$0}}' | samtools view -Shb - > aligned/${smallBase}.filter.bam
-samtools sort aligned/${smallBase}.filter.bam -o aligned/${smallBase}.filter.sorted.bam
-samtools index aligned/${smallBase}.filter.sorted.bam
+# samtools view -h aligned/${smallBase}.bam | awk '{if(\$3 != "chrM" && \$3 != "chrUn"){print \$0}}' | samtools view -Shb - > aligned/${smallBase}.filter.bam
+# samtools sort aligned/${smallBase}.filter.bam -o aligned/${smallBase}.filter.sorted.bam
+# samtools index aligned/${smallBase}.filter.sorted.bam
 
-alignmentSieve --ATACshift --bam aligned/${smallBase}.filter.sorted.bam -o aligned/${smallBase}.shifted.bam
-samtools sort ${folder}/aligned/${smallBase}.shifted.bam -o ${folder}/aligned/${smallBase}.shifted.nsorted.bam
-samtools index ${folder}/aligned/${smallBase}.shifted.nsorted.bam
+# alignmentSieve --ATACshift --bam aligned/${smallBase}.filter.sorted.bam -o aligned/${smallBase}.shifted.bam
+# samtools sort ${folder}/aligned/${smallBase}.shifted.bam -o ${folder}/aligned/${smallBase}.shifted.nsorted.bam
+# samtools index ${folder}/aligned/${smallBase}.shifted.nsorted.bam
 
-rm aligned/${smallBase}.filter*
-rm ${smallBase}.bam 
-rm ${smallBase}.sam
-rm ${smallBase}.shifted.bam
+samtools sort -n ${folder}/aligned/${smallBase}.shifted.nsorted.bam -o ${folder}/aligned/${smallBase}.sortQuery.bam
+samtools index ${folder}/aligned/${smallBase}.sortQuery.bam
 
-bamCoverage --bam aligned/${smallBase}.shifted.nsorted.bam -o ${folder}/bigwig/${smallBase}_normalized.bw \
-	--binSize 1 --normalizeUsing RPKM --ignoreDuplicates --extendReads -of bigwig -p max \
-	-bl /dartfs-hpc/rc/lab/W/WangX/Genomes_and_extra/GRCh38/hg38-blacklist.v2.bed \
-	--ignoreForNormalization chrX chrM chrRandom chrUn
+# rm aligned/${smallBase}.filter*
+# rm aligned/${smallBase}.bam 
+# rm aligned/${smallBase}.sam
+# rm aligned/${smallBase}.shifted.bam
 
-Genrich -t ${folder}/aligned/${smallBase}shifted.nsorted.bam \
+# bamCoverage --bam aligned/${smallBase}.shifted.nsorted.bam -o ${folder}/bigwig/${smallBase}_normalized.bw \
+# 	--binSize 1 --normalizeUsing RPKM --ignoreDuplicates --extendReads -of bigwig -p max \
+# 	-bl /dartfs-hpc/rc/lab/W/WangX/Genomes_and_extra/GRCh38/hg38-blacklist.v2.bed \
+# 	--ignoreForNormalization chrX chrM chrRandom chrUn
+
+Genrich -t ${folder}/aligned/${smallBase}.sortQuery.bam \
 	-o ${folder}/peaks_called/${smallBase}.bed \
 	-j  -y  -r  -e chrM  -v -E \
 	/dartfs-hpc/rc/lab/W/WangX/Genomes_and_extra/GRCh38/hg38-blacklist.v2.bed
+
+rm aligned/${smallBase}.sortQuery*
 
 computeMatrix reference-point \
 	--referencePoint center \
@@ -132,8 +137,8 @@ currLine=\$(wc -l < ${folder}/meta.txt)
 if ((\$currLine == $count)); then
     rmdir deduplicated/
     rmdir trimmed/
-    cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/sugiarto_qc.sh ${folder}
-    sh sugiarto_qc.sh
+    cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/qc.sh ${folder}
+    sh qc.sh
     rm ${folder}/meta.txt
 fi
 EOF

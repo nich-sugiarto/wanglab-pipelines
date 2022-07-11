@@ -3,7 +3,6 @@
 # Alignment pipeline for CUT&RUN data. Modified from existing pipeline 6/27/2022
 # Assumes that all fastq files are contained within the same folder, and have suffix _1.fq.gz.
 # See areas marked "CHANGE FOR FILE EXTENSION"
-# Stolen from Ruoyun Wang
 
 # Requires the "vanilla" environment, and the "qc" environment (for fastqc and multiqc)
 

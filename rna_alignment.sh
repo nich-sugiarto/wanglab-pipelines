@@ -26,7 +26,7 @@ count=$(find ./ -mindepth 1 -type f -name "*1.fastq.gz" -printf x | wc -c)  # Fi
 echo There are $count sets of files
 
 # Meta file to know when qc will begin (empty file)
-cat >${folder}/'meta.txt' <<EOF
+cat >${folder}/'alignMeta.txt' <<EOF
 EOF
 cd fastq
 for file in *1.fastq.gz  # CHANGE FOR FILE EXTENSION
@@ -58,10 +58,10 @@ EOF
 #SBATCH --nodes=1
 
 # Number of cores
-#SBATCH --cpus-per-task=10
+#SBATCH --cpus-per-task=8
 
 #Number of memory
-#SBATCH --mem-per-cpu=32GB
+#SBATCH --mem-per-cpu=16GB
 
 # Number of cores, in this case one
 #SBATCH --ntasks-per-node=1
@@ -84,8 +84,8 @@ mkdir -p fastqc
 
 # CHANGE FOR FILE EXTENSION
 clumpify.sh \
-	in1=${folder}/${base}_1.fq.gz \
-	in2=${folder}/${base}_2.fq.gz \
+	in1=${folder}/fastq/${base}_R1.fastq.gz \
+	in2=${folder}/fastq/${base}_R2.fastq.gz \
 	out1=clumped/${smallBase}_R1_clumped.fastq.gz \
 	out2=clumped/${smallBase}_R2_clumped.fastq.gz 
 	
@@ -118,8 +118,10 @@ samtools index aligned/${smallBase}Aligned.sortedByCoord.out.bam
 
 bamCoverage -b aligned/${smallBase}Aligned.sortedByCoord.out.bam -o bigwig/${smallBase}.bw
 
+rm aligned/${smallBase}Aligned.sortedByCoord.out.bam*
+
 featureCounts -T 8 -s 0 \
-	-g gene_name -a /dartfs-hpc/rc/lab/W/WangX/Genomes_and_extra/gencode.v40.annotation.gtf.gz \
+	-g gene_name -a /dartfs-hpc/rc/lab/W/WangX/Genomes_and_extra/hg38.knownGene.gtf \
 	-o counts/${smallBase}_featurecounts.txt \
 	-p aligned/${smallBase}_sorted.bam
 
@@ -134,18 +136,18 @@ cut -f 6 ${smallBase}_featurecounts.txt > ${smallBase}_featurecounts_Length.txt
 source activate R
 Rscript ${smallBase}_RPKM.R
 
-echo "${smallBase} completed!" >> ${folder}/'meta.txt'
+echo "${smallBase} completed!" >> ${folder}/'alignMeta.txt'
 
 # Checks to see if all the files have been analyzes
 # if so, will run fastqc and multiqc on fastq and bam files 
 # (requires access to Nick's pipeline folder)
 
-currLine=$(wc -l < ${folder}/meta.txt)
-if ((\$currLine == $count));
-then
-    cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/sugiarto_qc.sh ${folder}
-    sh sugiarto_qc_folder.sh
-    rm ${folder}/meta.txt
+currLine=\$(wc -l < ${folder}/alignMeta.txt)
+echo \${currLine}
+if ((\$currLine == $count)); then
+    cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/qc.sh ${folder}
+    sh qc.sh
+    rm ${folder}/alignMeta.txt
 	rmdir clumped/
 	rmdir trimmed/
 fi
