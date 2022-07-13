@@ -7,17 +7,27 @@
 # Runs ChIPSeeker and pathway analysis
 
 # Code taken from some Harvard tutorial that I should really refer back to
+#TODO: Remove dependency on annotables -> BioMaRt better supported?
 
-# Version control available at https://docs.google.com/document/d/1lCYRKcYol6praX75HFxb90SaNrrugmx8aanxGQu3Ups/edit
+# Version control available at https://docs.google.com/document/d/1zGZQNSLLzDqYTpqTq0EN40g5AZkHUz23ch6M9H6_edU/edit
+
+#  If a name is not provided
+if [ -z "$1" ]; then 
+  echo ERROR: TARGET FOLDER WAS NOT SPECIFIED
+  echo USAGE:
+  echo This pipeline takes in one positional argument:
+  echo 	\$1 - target folder
+  exit 1
+fi
 
 folder=$(cd "$(dirname "$0")";pwd)
 
-mkdir ChIPseeker
+mkdir -p ChIPseeker
 
 for file in $1/*.bed; do
   base=$(basename "$file" ".bed")
   if [[ $base != *_IgG* ]]; then
-    mkdir ${folder}/ChIPseeker/${base}
+    mkdir -p ${folder}/ChIPseeker/${base}
     cat > ${folder}/PBS/${base}_ChIPseeker.r <<EOF
 library(ChIPseeker)
 library(TxDb.Hsapiens.UCSC.hg38.knownGene)
@@ -61,7 +71,8 @@ entrez2gene <- grch38 %>% filter(entrez %in% entrezids) %>% dplyr::select(entrez
 
 # Match to each annotation dataframe
 m <- match(annot\$geneId, entrez2gene\$entrez)
-annot <- cbind(annot[,1:21], geneSymbol=entrez2gene\$symbol[m])  # Known to break depending on amount of columns of annot. Fix?
+dim(annot)
+annot <- cbind(annot[,1:ncol(annot)], geneSymbol=entrez2gene\$symbol[m])  # Known to break depending on amount of columns of annot. Fix?
 write.table(annot,file="$folder/ChIPseeker/${base}/${base}_annotation.txt", sep="\t", quote=F, row.names=F)
 
 entrezids <- annot\$geneId %>%
@@ -126,7 +137,9 @@ EOF
 # Enter your code to run below #
 ################################
 cd ${folder}
-module load R/4.1.2
+
+source /dartfs-hpc/rc/lab/W/WangX/sharedconda/miniconda/etc/profile.d/conda.sh
+source activate ChIPseeker
 
 Rscript ${folder}/PBS/${base}_ChIPseeker.r
 EOF

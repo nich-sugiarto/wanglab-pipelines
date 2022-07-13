@@ -11,6 +11,16 @@
 
 folder=$(cd "$(dirname "$0")";pwd)  # Stores current folder path as directory
 
+# If a name is not provided
+if [ -z "$1" ]; then 
+  echo ERROR: TARGET FOLDER WAS NOT SPECIFIED
+  echo USAGE:
+  echo This pipeline takes in two positional argument:
+  echo 	\$1 - target folder
+  echo 	\$2 - The name of the generated DiffBind object (default is dbObj)
+  exit 1
+fi
+
 #  If a name is not provided
 if [ -z "$2" ]; then 
 	NAME="dbObj"  # Set to default name

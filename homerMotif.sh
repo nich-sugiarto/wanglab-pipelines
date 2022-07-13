@@ -12,6 +12,15 @@ mkdir -p PBS
 folder=$(cd "$(dirname "$0")";pwd)
 mkdir -p log
 
+# If a name is not provided
+if [ -z "$1" ]; then 
+  echo ERROR: TARGET FOLDER WAS NOT SPECIFIED
+  echo USAGE:
+  echo This pipeline takes in one positional argument:
+  echo 	\$1 - target folder
+  exit 1
+fi
+
 cd $folder
 
 cd $1
