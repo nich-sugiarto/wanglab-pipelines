@@ -76,9 +76,9 @@ EOF
 # Enter your code to run below #
 ################################
 cd ${folder}
-pwd
 
-source activate vanilla
+source /dartfs-hpc/rc/lab/W/WangX/sharedconda/miniconda/etc/profile.d/conda.sh
+source activate alignment
 	
 mkdir -p fastqc
 

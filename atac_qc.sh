@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# BROKEN - DO NOT USE
+
 # Quality control specific for ATAC data. Includes library size estimation, fragment size distribution, 
 # Promoter/Transcript (PT) body score, Nucleosome Free Regions (NFR) scores, and Transcription Start Site (TSS) scores.
 

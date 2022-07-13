@@ -64,7 +64,8 @@ for file in *_1.fq.gz; do
 # Enter your code to run below #
 ################################
 
-source activate vanilla
+source /dartfs-hpc/rc/lab/W/WangX/sharedconda/miniconda/etc/profile.d/conda.sh
+source activate alignment
 
 clumpify.sh \
     in1=fastq/${file} \
@@ -130,7 +131,7 @@ echo "${smallBase} completed!" >> ${folder}/'meta.txt'
 # (requires access to Nick's pipeline folder)
 
 currLine=\$(wc -l < ${folder}/meta.txt)
-if ((\$currLine == (($count + 1)))); then
+if ((\$currLine == $count)); then
     rm -r deduplicated/
     rm -r trimmed/
     cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/sugiarto_qc.sh ${folder}
