@@ -4,7 +4,7 @@
 # Assumes that all fastq files are contained within the same folder, and have suffix _1.fq.gz.
 # See areas marked "CHANGE FOR FILE EXTENSION"
 
-# Requires the "vanilla" environment, and the "qc" environment (for fastqc and multiqc)
+# Requires the "alignment" environment, and the "qc" environment (for fastqc and multiqc)
 
 # Version Doc: https://docs.google.com/document/d/1LL0hB4eDcqZ7_UmBX_KwyiYlm5r1fBio-Y4hdBUdZQw/edit
 

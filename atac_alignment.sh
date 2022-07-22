@@ -141,6 +141,10 @@ if ((\$currLine == $count)); then
     rmdir trimmed/
     cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/qc.sh ${folder}
     sh qc.sh
+	cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/homerMotif.sh ${folder}
+	sh homerMotif.sh
+	cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/ChIPseeker.sh ${folder}
+	sh ChIPseeker.sh
     rm ${folder}/meta.txt
 fi
 EOF
