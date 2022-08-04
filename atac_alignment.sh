@@ -100,7 +100,7 @@ samtools index ${folder}/aligned/${smallBase}.shifted.nsorted.bam
 samtools sort -n ${folder}/aligned/${smallBase}.shifted.nsorted.bam -o ${folder}/aligned/${smallBase}.sortQuery.bam
 samtools index ${folder}/aligned/${smallBase}.sortQuery.bam
 
-rm aligned/${smallBase}.filter*
+rm aligned/${smallBase}.filter.bam
 rm aligned/${smallBase}.bam 
 rm aligned/${smallBase}.sam
 rm aligned/${smallBase}.shifted.bam

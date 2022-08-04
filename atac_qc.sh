@@ -11,8 +11,9 @@
 
 # Script automatically generated using the "slouch" command on Wed Jun 29 15:29:27 EDT 2022
 
-#TODO: Split reads? 
-#TODO: Add multicorr plot
+# TODO: Split reads? 
+# TODO: Attempt to sample multiple chromosomes
+# TODO: Add multicorr plot
 
 folder=$(cd "$(dirname "$0")";pwd)
 
@@ -42,6 +43,7 @@ fragSize <- fragSizeDist("${file}", "${base}")
 dev.off()
 
 seqinformation <- seqinfo(TxDb.Hsapiens.UCSC.hg38.knownGene)
+which <- as(seqinformation["chr1"], "GRanges")
 
 ## bamfile tags to be read in
 possibleTag <- list("integer"=c("AM", "AS", "CM", "CP", "FI", "H0", "H1", "H2", 
@@ -65,7 +67,6 @@ print("Here!")
 seqinformation <- seqinfo(TxDb.Hsapiens.UCSC.hg38.knownGene)
 which <- as(seqinformation, "GRanges")
 bam <- readBamFile("${file}", tag=tags, which=which, asMates=TRUE, bigFile=TRUE)
-bam
 bam <- shiftGAlignmentsList(bam)
 
 txs <- transcripts(TxDb.Hsapiens.UCSC.hg38.knownGene)
@@ -118,22 +119,17 @@ EOF
 #SBATCH --time=5:00:00
 
 # Name of the output files to be created. If not specified the outputs will be joined
-#SBATCH --output=%x.%j.out
-#SBATCH --error=%x.%j.err
+#SBATCH --output=${folder}/log/${base}_atacqc%x.%j.out.txt
+#SBATCH --error=${folder}/log/${base}_atacqc%x.%j.err.txt
 ################################
 # Enter your code to run below #
 ################################
-cd ${folder}/aligned
-
-module load R/4.1.2
 
 Rscript ${base}_qc.R
 
 rm ${base}_qc.R
 mv ${base}*.pdf ${folder}/ATACqc/${base}
 EOF
-
-	cd ../log
-	sbatch ../PBS/${base}_ATACqc'.pbs'
+	sbatch ${folder}/PBS/${base}_ATACqc'.pbs'
 	cd ${folder}/aligned
 done
