@@ -14,8 +14,9 @@ Pipelines for the Wang Lab
 | Pipeline name | Description | Status |
 | ------------- | ----------- | ------ |
 | atac_alignment.sh | Aligns ATAC-Seq data to hg38 genome and calls peaks using the Genrich peakcaller | :white_check_mark: |
-| atac_qc.sh | Quality control metrics for ATAC data such as TSS, PT, and NFR score | :finnadie: |
-| cr_alignment | Aligns CUT&RUN data to hg38 genome and calls peaks using the epic2 peakcaller | :white_check_mark: |
+| atac_qc.sh | Quality control metrics for ATAC data such as TSS, PT, and NFR score | :running: |
+| cr_alignment | Aligns CUT&RUN data to hg38 genome and calls peaks | :white_check_mark: |
+| cr_peakcalling | Calls peaks using the epic2 peakcaller normalized to IgG | :running: |
 | rna_alignment.sh | Aligns RNA-Seq data to hg38 genome using the STAR aligner, and calls peaks using epic2 | :white_check_mark: |
 | qc.sh | Fastqc for fastq and bam files | :white_check_mark: |
   
