@@ -90,7 +90,7 @@ print("Here!")
 tsse <- TSSEscore(bam, txs)
 print("Here!")
 
-pdf(file="${base}_NFR.pdf")
+pdf(file="${base}_TSS.pdf")
 plot(100*(-9:10-.5), tsse\$values, type="b", 
      xlab="distance to TSS",
      ylab="aggregate TSS score")
