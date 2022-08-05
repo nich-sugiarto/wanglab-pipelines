@@ -137,15 +137,18 @@ echo "${smallBase} completed!" >> ${folder}/'meta.txt'
 
 currLine=\$(wc -l < ${folder}/meta.txt)
 if ((\$currLine == $count)); then
+	source activate base
     rmdir deduplicated/
     rmdir trimmed/
     cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/qc.sh ${folder}
     sh qc.sh
 	cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/homerMotif.sh ${folder}
-	sh homerMotif.sh
+	sh homerMotif.sh peaks_called
 	cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/ChIPseeker.sh ${folder}
-	sh ChIPseeker.sh
+	sh ChIPseeker.sh peaks_called
     rm ${folder}/meta.txt
+	cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/atac_qc.sh ${folder}
+	sh atac_qc.sh
 fi
 EOF
 	cd ${folder}/log

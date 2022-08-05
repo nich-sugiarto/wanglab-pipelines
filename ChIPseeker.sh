@@ -131,8 +131,8 @@ EOF
 #SBATCH --time=10:00:00
 
 # Name of the output files to be created. If not specified the outputs will be joined
-#SBATCH --output=%x.%j.out
-#SBATCH --error=%x.%j.err
+#SBATCH --output=${folder}/log%x.%j.out
+#SBATCH --error=${folder}/log%x.%j.err
 ################################
 # Enter your code to run below #
 ################################
@@ -143,8 +143,6 @@ source activate ChIPseeker
 
 Rscript ${folder}/PBS/${base}_ChIPseeker.r
 EOF
-
-    cd ${folder}/log
     sbatch ${folder}/PBS/${base}_ChIPseeker.pbs
   fi
 done
