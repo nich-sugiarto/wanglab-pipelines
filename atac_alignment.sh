@@ -43,7 +43,7 @@ for file in *${suffix1}; do
 	echo ${smallBase}
 	cat >${folder}/PBS/$smallBase'.pbs' <<EOF
 #!/bin/bash
-#SBATCH --job-name=$smallBase
+#SBATCH --job-name=qc
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=8

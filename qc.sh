@@ -10,6 +10,8 @@
 #TODO: Use/test only on deduplicated reads? 
 #FIXME: Job name seems to be fastqcfastqc instead of fastqc? (minor)
 
+source /dartfs-hpc/rc/lab/W/WangX/sharedconda/miniconda/etc/profile.d/conda.sh
+
 folder=$(cd "$(dirname "$0")";pwd)
 
 cat >${folder}/PBS/'fastqc.pbs' <<EOF
@@ -39,6 +41,7 @@ cat >${folder}/PBS/'fastqc.pbs' <<EOF
 # Enter your code to run below #
 ################################
 
+source /dartfs-hpc/rc/lab/W/WangX/sharedconda/miniconda/etc/profile.d/conda.sh
 source activate qc
 
 cd ${folder}

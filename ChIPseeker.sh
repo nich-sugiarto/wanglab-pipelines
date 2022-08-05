@@ -113,7 +113,7 @@ EOF
     cat >${folder}/PBS/${base}_ChIPseeker'.pbs' <<EOF
 #!/bin/bash -l
 # Name of the job
-#SBATCH --job-name=${base}_ChIPSeeker # Name of the job
+#SBATCH --job-name=ChIPSeeker # Name of the job
 
 # Number of compute nodes
 #SBATCH --nodes=1

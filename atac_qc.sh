@@ -100,7 +100,7 @@ EOF
 	cat >../PBS/${base}'_ATACqc.pbs' <<EOF
 #!/bin/bash -l
 # Name of the job
-#SBATCH --job-name=${base}_ATACQC # Name of the job
+#SBATCH --job-name=ATACQC # Name of the job
 
 # Number of compute nodes
 #SBATCH --nodes=1
