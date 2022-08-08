@@ -57,8 +57,8 @@ for file in *_1.fq.gz; do
 #SBATCH --time=10:00:00
 
 # Name of the output files to be created. If not specified the outputs will be joined
-#SBATCH --output=${smallBase}_alignment%x.%j.out
-#SBATCH --error=${smallBase}_alignment%x.%j.err
+#SBATCH --output=${smallBase}_alignment.%j.out
+#SBATCH --error=${smallBase}_alignment.%j.err
 ################################
 # Enter your code to run below #
 ################################

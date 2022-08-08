@@ -11,7 +11,7 @@
 #   $2 - log cutoff
 #   $3 - counts cutoff
 
-# Version Doc: https://docs.google.com/document/d/1LL0hB4eDcqZ7_UmBX_KwyiYlm5r1fBio-Y4hdBUdZQw/edit
+# Version Doc: https://docs.google.com/document/d/1HMoJZ5QpscD6h2Gb1v2hWVpKfk1sxz4MzuVZoArSHyw/edit
 
 # TODO: Test pipeline
 
