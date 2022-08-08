@@ -91,7 +91,6 @@ source /dartfs-hpc/rc/lab/W/WangX/sharedconda/miniconda/etc/profile.d/conda.sh
 source activate peakcalling
 
 cd ${folder}
-source activate peakcalling
 
 epic2 --treatment $folder/aligned/${base}_sorted_filtered.bam --control $folder/aligned/${igGbase}_sorted_filtered.bam -o epic2/${smallBase}.bed
 

@@ -57,8 +57,8 @@ for file in *_1.fq.gz; do
 #SBATCH --time=10:00:00
 
 # Name of the output files to be created. If not specified the outputs will be joined
-#SBATCH --output=${smallBase}_alignment.%j.out
-#SBATCH --error=${smallBase}_alignment.%j.err
+#SBATCH --output=${folder}/log/${smallBase}_alignment.%j.out
+#SBATCH --error=${folder}/log/${smallBase}_alignment.%j.err
 ################################
 # Enter your code to run below #
 ################################
@@ -84,6 +84,9 @@ bbduk.sh \
     ref=/dartfs-hpc/rc/lab/W/WangX/Nicholas/bbmap/resources/adapters.fa \
     ktrim=r k=21 mink=11 hdist=1 tpe tbo
 
+rm deduplicated/${smallBase}_R1_dedup.fastq*
+rm deduplicated/${smallBase}_R2_dedup.fastq*
+
 module load bowtie/2.2.7
 
 bowtie2 -x \
@@ -92,6 +95,9 @@ bowtie2 -x \
     -2 trimmed/${smallBase}_R2_trimmed.fastq \
     --local --very-sensitive-local --no-unal --no-mixed \
     --no-discordant --phred33 -I 10 -X 700 > aligned/${smallBase}.sam
+
+rm trimmed/${smallBase}_R1_trimmed.fastq
+rm trimmed/${smallBase}_R2_trimmed.fastq
 
 samtools view -Sbo aligned/${smallBase}.bam aligned/${smallBase}.sam
 samtools sort aligned/${smallBase}.bam -o aligned/${smallBase}sorted.bam
@@ -131,13 +137,15 @@ echo "${smallBase} completed!" >> ${folder}/'meta.txt'
 
 currLine=\$(wc -l < ${folder}/meta.txt)
 if ((\$currLine == $count)); then
+    source activate base
     rm -r deduplicated/
     rm -r trimmed/
     cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/sugiarto_qc.sh ${folder}
     sh sugiarto_qc.sh
+    cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/sugiarto_epic2.sh ${folder}
+    sh sugairto_epic2.sh
     rm ${folder}/meta.txt
 fi
 EOF
-    cd ${folder}/log
     sbatch ${folder}/PBS/${smallBase}'.pbs'
 done
