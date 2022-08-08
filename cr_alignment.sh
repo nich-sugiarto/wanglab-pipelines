@@ -23,20 +23,19 @@ mkdir -p log
 
 folder=$(cd "$(dirname "$0")";pwd)  # Saves folder as a variable
 
-count=$(find ./ -mindepth 1 -type f -name "*_1.fq.gz" -printf x | wc -c)  # Finds total number of files matching extension. Needed to know when to start qc. CHANGE FOR FILE EXTENSION
-
+count=$(find ./fastq -mindepth 1 -type f -name "*_1.fq.gz" -printf x | wc -c)  # Finds total number of files matching extension. Needed to know when to start qc. CHANGE FOR FILE EXTENSION
+echo $count files found!
 # Meta file to know when qc will begin (empty file)
 cat >${folder}/'meta.txt' <<EOF
 EOF
 
+cd fastq
 # Loop over all the fastq files
 # CHANGE FOR FILE EXTENSION
 for file in *_1.fq.gz; do
-    cd ${folder}/fastq
-
     base=$(basename "$file" "_1.fq.gz")  # CHANGE FOR FILE EXTENSION
     smallBase=${base%_CKDL*}  # CHANGE FOR FILE EXTENSION
-
+    echo ${smallBase}
     cat >${folder}/PBS/${smallBase}'.pbs' <<EOF
 #!/bin/bash -l
 # Name of the job
@@ -63,7 +62,7 @@ for file in *_1.fq.gz; do
 ################################
 # Enter your code to run below #
 ################################
-
+cd ${folder}
 source /dartfs-hpc/rc/lab/W/WangX/sharedconda/miniconda/etc/profile.d/conda.sh
 source activate alignment
 
