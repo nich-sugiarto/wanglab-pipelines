@@ -100,12 +100,12 @@ rm trimmed/${smallBase}_R1_trimmed.fastq
 rm trimmed/${smallBase}_R2_trimmed.fastq
 
 samtools view -Sbo aligned/${smallBase}.bam aligned/${smallBase}.sam
-samtools sort aligned/${smallBase}.bam -o aligned/${smallBase}sorted.bam
+samtools sort aligned/${smallBase}.bam -o aligned/${smallBase}.sorted.bam
 
-samtools index aligned/${smallBase}sorted.bam
+samtools index aligned/${smallBase}.sorted.bam
 
 bamCoverage \
-    --bam aligned/${smallBase}sorted.bam \
+    --bam aligned/${smallBase}.sorted.bam \
     -o normalized_bw/${smallBase}_normalized.bw \
     --binSize 1 --normalizeUsing RPKM --ignoreDuplicates \
     --extendReads -of bigwig -p max \
@@ -113,21 +113,21 @@ bamCoverage \
     --ignoreForNormalization chrX chrM chrRandom chrUn
 
 samtools view -b \
-    aligned/${smallBase}sorted.bam \
+    aligned/${smallBase}.sorted.bam \
     chr1 chr2 chr3 chr4 chr5 chr6 chr7 chr8 chr9 chr10 chr11 chr12 \
     chr13 chr14 chr15 chr16 chr17 chr18 chr19 chr20 chr21 chr22 chrX chrY \
-    > aligned/${smallBase}_chr_filt.bam
+    > aligned/${smallBase}.chr_filt.bam
 
-bedtools intersect -v -a aligned/${smallBase}_chr_filt.bam -b \
-    /dartfs-hpc/rc/lab/W/WangX/Genomes_and_extra/GRCh38/hg38-blacklist.v2.bed > aligned/${smallBase}_sorted_filtered.bam
+bedtools intersect -v -a aligned/${smallBase}.chr_filt.bam -b \
+    /dartfs-hpc/rc/lab/W/WangX/Genomes_and_extra/GRCh38/hg38-blacklist.v2.bed > aligned/${smallBase}.sorted.filtered.bam
 
 samtools index aligned/${smallBase}_sorted_filtered.bam
 
 rm ${folder}/aligned/${smallBase}.bam
-rm ${folder}/aligned/${smallBase}_chr_filt.bam
+rm ${folder}/aligned/${smallBase}.chr_filt.bam
 rm ${folder}/aligned/${smallBase}.sam
-rm ${folder}/aligned/${smallBase}sorted.bam
-rm ${folder}/aligned/${smallBase}sorted.bam.bai
+rm ${folder}/aligned/${smallBase}.sorted.bam
+rm ${folder}/aligned/${smallBase}.sorted.bam.bai
 
 echo "${smallBase} completed!" >> ${folder}/'meta.txt'
 
