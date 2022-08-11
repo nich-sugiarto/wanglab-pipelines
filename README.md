@@ -9,6 +9,8 @@ Pipelines for the Wang Lab
 
 
 ## Current Pipelines Available:
+[![Nick's GitHub stats](https://github-readme-stats.vercel.app/api?username=nich-sugiarto)](https://github.com/anuraghazra/github-readme-stats)
+
 ### NGS alignment + specifics
 
 | Pipeline name | Description | Status |
@@ -26,8 +28,12 @@ Pipelines for the Wang Lab
 | ChIPseeker.sh | Peak annotation and pathway analysis | :white_check_mark: |
 | ChromHMM.sh | Annotates chromatin states | :shipit: |
 | diffBind_createObject | Creates DiffBind object and saves it for faster downstream processing | :white_check_mark: |
+| EChO | Fragment analysis for CUT&RUN data | :running: |
 | homerMotif.sh | Generates homer motifs | :white_check_mark: |
 | heatmaps.sh | Generates heatmaps but only from certain annotated peaks (e.g. only distal intergenic regions) | :running: |
+| ROSE.sh | Annotates super enhancers | :shipit: |
+| RNA_deseqTwo.sh | DESeq on all RNA samples | :running: |
+| RNA_deseqTwo.sh | DESeq on two RNA samples | :running: |
 | ROSE.sh | Annotates super enhancers | :shipit: |
 
 ### Miscellaneous

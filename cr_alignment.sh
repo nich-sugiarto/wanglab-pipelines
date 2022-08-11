@@ -121,7 +121,7 @@ samtools view -b \
 bedtools intersect -v -a aligned/${smallBase}.chr_filt.bam -b \
     /dartfs-hpc/rc/lab/W/WangX/Genomes_and_extra/GRCh38/hg38-blacklist.v2.bed > aligned/${smallBase}.sorted.filtered.bam
 
-samtools index aligned/${smallBase}_sorted_filtered.bam
+samtools index aligned/${smallBase}.sorted.filtered.bam
 
 rm ${folder}/aligned/${smallBase}.bam
 rm ${folder}/aligned/${smallBase}.chr_filt.bam
@@ -138,12 +138,12 @@ echo "${smallBase} completed!" >> ${folder}/'meta.txt'
 currLine=\$(wc -l < ${folder}/meta.txt)
 if ((\$currLine == $count)); then
     source activate base
-    rm -r deduplicated/
-    rm -r trimmed/
-    cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/sugiarto_qc.sh ${folder}
-    sh sugiarto_qc.sh
-    cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/sugiarto_epic2.sh ${folder}
-    sh sugairto_epic2.sh
+    rmdir deduplicated/
+    rmdir trimmed/
+    cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/qc.sh ${folder}
+    sh qc.sh
+    cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/cr_epic2.sh ${folder}
+    sh cr_epic2.sh
     rm ${folder}/meta.txt
 fi
 EOF

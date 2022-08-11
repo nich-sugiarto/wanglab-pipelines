@@ -47,7 +47,7 @@ cat >${folder}/PBS/velyto_align'.pbs' <<EOF
 ################################
 # Enter your code to run below #
 ################################
-source activate psuedotime
+source activate velocyto
 
 cd ${folder}
 

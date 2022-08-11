@@ -48,18 +48,22 @@ groupCount=$(find ./fastq -mindepth 1 -type f -name "*IgG*_1.fq.gz" -printf x | 
 
 echo "${count} peakcalling to be done..."
 
-cat >${folder}/log/'log.txt' <<EOF
+# Meta file to know when qc will begin (empty file)
+cat >${folder}/'meta.txt' <<EOF
 EOF
 
+cd fastq
 for file in *_IgG_*_1.fq.gz; do
     igGbase=$(basename "$file" "_1.fq.gz")
+    igGbase=${igGbase%_CKDL*}
     groupprefix=${igGbase%%_*}
 
     for f in $folder/fastq/*_1.fq.gz; do
         base=$(basename "$f" "_1.fq.gz")
         prefix=${base%%_*}
-        if [ "$base" != "$igGbase" ] && [ "$prefix" == "$groupprefix" ]; then
-            smallBase=${base%_CKDL*}
+        smallBase=${base%_CKDL*}
+        if [ "$smallBase" != "$igGbase" ] && [ "$prefix" == "$groupprefix" ]; then
+            echo ${smallBase}
             cat >${folder}/PBS/${smallBase}_epic2'.pbs' <<EOF
 #!/bin/bash -l
 # Name of the job
@@ -92,7 +96,11 @@ source activate peakcalling
 
 cd ${folder}
 
-epic2 --treatment $folder/aligned/${base}_sorted_filtered.bam --control $folder/aligned/${igGbase}_sorted_filtered.bam -o epic2/${smallBase}.bed
+epic2 \
+  --treatment $folder/aligned/${smallBase}.sorted.filtered.bam \
+  --control $folder/aligned/${igGbase}.sorted.filtered.bam \
+  --genome hg38 \
+  -o epic2/${smallBase}.bed
 
 awk '\$9 <= ${fdr} {print \$0}' epic2/${smallBase}.bed > epic2/${smallBase}_FDR_0.01.bed
 
@@ -103,35 +111,33 @@ awk '\$7 > ${cnts} {print \$0}' epic2/${smallBase}_log_1.bed > epic2/${smallBase
 rm epic2/${smallBase}_FDR_0.01.bed
 rm epic2/${smallBase}_log_1.bed
 
-source activate base
-source activate alignment
+conda activate alignment
 
 computeMatrix reference-point \
 	--referencePoint center \
 	-b 5000 -a 5000 \
 	-R epic2/${smallBase}.bed \
 	-S normalized_bw/${smallBase}_normalized.bw  \
-	-o $folder/heatmap/${smallBase}_center.gz --missingDataAsZero -p max
+	-o $folder/heatmaps/${smallBase}_center.gz --missingDataAsZero -p max
 
-plotHeatmap -m $folder/heatmap/${smallBase}_center.gz \
-	-out $folder/heatmap/${smallBase}_center.pdf --colorList 'white,darkred'
+plotHeatmap -m $folder/heatmaps/${smallBase}_center.gz \
+	-out $folder/heatmaps/${smallBase}_center.pdf --colorList 'white,darkred'
 
-rm $folder/heatmap/${smallBase}_center.gz
+rm $folder/heatmaps/${smallBase}_center.gz
 
-echo "${smallBase} completed!" >> ${folder}/log/'log.txt'
+echo "${smallBase} completed!" >> ${folder}/'meta.txt'
 
-currLine=\$(wc -l < ${folder}/log/log.txt)
+currLine=\$(wc -l < ${folder}/meta.txt)
 if ((\$currLine == $count)); then
-    cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/qc.sh ${folder}
-    sh qc.sh
-	cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/homerMotif.sh ${folder}
-	sh homerMotif.sh epic2
     source activate base
-	cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/ChIPseeker.sh ${folder}
-	sh ChIPseeker.sh epic2
-    rm ${folder}/log/log.txt
+    cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/homerMotif.sh ${folder}
+    sh homerMotif.sh epic2
+    cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/ChIPseeker.sh ${folder}
+    sh ChIPseeker.sh epic2
+    rm ${folder}/meta.txt
 fi
 EOF
+        sbatch ${folder}/PBS/${smallBase}_epic2'.pbs'
         fi
     done
 done
