@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Alignment pipeline for CUT&RUN data. Modified from existing pipeline 6/27/2022
-# Assumes that all fastq files are contained within the same folder, and have suffix _1.fq.gz.
+# Assumes that all fastq files are contained within the same folder, and have suffix _R1_001.fastq.gz.
 # See areas marked "CHANGE FOR FILE EXTENSION"
 
 # Requires the "alignment" environment, and the "qc" environment (for fastqc and multiqc)
@@ -23,7 +23,7 @@ mkdir -p log
 
 folder=$(cd "$(dirname "$0")";pwd)  # Saves folder as a variable
 
-count=$(find ./fastq -mindepth 1 -type f -name "*_1.fq.gz" -printf x | wc -c)  # Finds total number of files matching extension. Needed to know when to start qc. CHANGE FOR FILE EXTENSION
+count=$(find ./fastq -mindepth 1 -type f -name "*_R1_001.fastq.gz" -printf x | wc -c)  # Finds total number of files matching extension. Needed to know when to start qc. CHANGE FOR FILE EXTENSION
 echo $count files found!
 # Meta file to know when qc will begin (empty file)
 cat >${folder}/'meta.txt' <<EOF
@@ -32,9 +32,9 @@ EOF
 cd fastq
 # Loop over all the fastq files
 # CHANGE FOR FILE EXTENSION
-for file in *_1.fq.gz; do
-    base=$(basename "$file" "_1.fq.gz")  # CHANGE FOR FILE EXTENSION
-    smallBase=${base%_CKDL*}  # CHANGE FOR FILE EXTENSION
+for file in *_R1_001.fastq.gz; do
+    base=$(basename "$file" "_R1_001.fastq.gz")  # CHANGE FOR FILE EXTENSION
+    smallBase=${base%_S*}  # CHANGE FOR FILE EXTENSION
     echo ${smallBase}
     cat >${folder}/PBS/${smallBase}'.pbs' <<EOF
 #!/bin/bash -l
@@ -68,7 +68,7 @@ source activate alignment
 
 clumpify.sh \
     in1=fastq/${file} \
-    in2=fastq/${base}_2.fq.gz \
+    in2=fastq/${base}_R2_001.fastq.gz\
     out1=deduplicated/${smallBase}_R1_dedup.fastq.gz \
     out2=deduplicated/${smallBase}_R2_dedup.fastq.gz \
     dedupe subs=2  # CHANGE FOR FILE EXTENSION
