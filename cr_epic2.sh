@@ -41,8 +41,8 @@ mkdir -p heatmaps
 
 folder=$(cd "$(dirname "$0")";pwd)
 
-count=$(find ./fastq -mindepth 1 -type f -name "*_1.fq.gz" -printf x | wc -c)  # Finds total number of files matching extension. CHANGE FOR FILE EXTENSION
-groupCount=$(find ./fastq -mindepth 1 -type f -name "*IgG*_1.fq.gz" -printf x | wc -c)  # Finds total number of control (IgG) files. CHANGE FOR FILE EXTENSION
+count=$(find ./aligned -mindepth 1 -type f -name "*.sorted.filtered.bam" -printf x | wc -c)  # Finds total number of files matching extension. CHANGE FOR FILE EXTENSION
+groupCount=$(find ./aligned -mindepth 1 -type f -name "*IgG*.sorted.filtered.bam" -printf x | wc -c)  # Finds total number of control (IgG) files. CHANGE FOR FILE EXTENSION
 
 ((count-=groupCount))
 
@@ -52,22 +52,17 @@ echo "${count} peakcalling to be done..."
 cat >${folder}/'meta.txt' <<EOF
 EOF
 
-cd fastq
-for file in *_IgG_*_1.fq.gz; do
-    igGbase=$(basename "$file" "_1.fq.gz")
-    igGbase=${igGbase%_CKDL*}
-    groupprefix=${igGbase%%_*}
-
-    for f in $folder/fastq/*_1.fq.gz; do
-        base=$(basename "$f" "_1.fq.gz")
-        prefix=${base%%_*}
-        smallBase=${base%_CKDL*}
-        if [ "$smallBase" != "$igGbase" ] && [ "$prefix" == "$groupprefix" ]; then
-            echo ${smallBase}
-            cat >${folder}/PBS/${smallBase}_epic2'.pbs' <<EOF
+cd aligned
+for file in *_IgG.sorted.filtered.bam; do
+    igGbase=$(basename "$file" ".sorted.filtered.bam")
+    groupprefix=${igGbase%%_IgG}
+    for f in $folder/aligned/${groupprefix}*.sorted.filtered.bam; do
+        base=$(basename "$f" ".sorted.filtered.bam")
+        if [ "$base" != "$igGbase" ]; then
+            cat >${folder}/PBS/${base}_epic2'.pbs' <<EOF
 #!/bin/bash -l
 # Name of the job
-#SBATCH --job-name=epic2_${smallBase}  # Name of the job
+#SBATCH --job-name=epic2_${base}  # Name of the job
 
 # Number of compute nodes
 #SBATCH --nodes=1
@@ -85,8 +80,8 @@ for file in *_IgG_*_1.fq.gz; do
 #SBATCH --time=2:00:00
 
 # Name of the output files to be created. If not specified the outputs will be joined
-#SBATCH --output=${folder}/log/${smallBase}_epic2.%j.out
-#SBATCH --error=${folder}/log/${smallBase}_epic2.%j.err
+#SBATCH --output=${folder}/log/${base}_epic2.%j.out
+#SBATCH --error=${folder}/log/${base}_epic2.%j.err
 ################################
 # Enter your code to run below #
 ################################
@@ -97,35 +92,35 @@ source activate peakcalling
 cd ${folder}
 
 epic2 \
-  --treatment $folder/aligned/${smallBase}.sorted.filtered.bam \
+  --treatment $folder/aligned/${base}.sorted.filtered.bam \
   --control $folder/aligned/${igGbase}.sorted.filtered.bam \
   --genome hg38 \
-  -o epic2/${smallBase}.bed
+  -o epic2/${base}.bed
 
-awk '\$9 <= ${fdr} {print \$0}' epic2/${smallBase}.bed > epic2/${smallBase}_FDR_0.01.bed
+awk '\$9 <= ${fdr} {print \$0}' epic2/${base}.bed > epic2/${base}_FDR_${fdr}.bed
 
-awk '\$10 >= ${lfc} {print \$0}' epic2/${smallBase}_FDR_0.01.bed > epic2/${smallBase}_log_1.bed
+awk '\$10 >= ${lfc} {print \$0}' epic2/${base}_FDR_${fdr}.bed > epic2/${base}_log_${lfc}.bed
 
-awk '\$7 > ${cnts} {print \$0}' epic2/${smallBase}_log_1.bed > epic2/${smallBase}.bed
+awk '\$7 > ${cnts} {print \$0}' epic2/${base}_log_${lfc}.bed > epic2/${base}.bed
 
-rm epic2/${smallBase}_FDR_0.01.bed
-rm epic2/${smallBase}_log_1.bed
+rm epic2/${base}_FDR_${fdr}.bed
+rm epic2/${base}_log_${lfc}.bed
 
 conda activate alignment
 
 computeMatrix reference-point \
 	--referencePoint center \
 	-b 5000 -a 5000 \
-	-R epic2/${smallBase}.bed \
-	-S normalized_bw/${smallBase}_normalized.bw  \
-	-o $folder/heatmaps/${smallBase}_center.gz --missingDataAsZero -p max
+	-R epic2/${base}.bed \
+	-S normalized_bw/${base}_normalized.bw  \
+	-o $folder/heatmaps/${base}_center.gz --missingDataAsZero -p max
 
-plotHeatmap -m $folder/heatmaps/${smallBase}_center.gz \
-	-out $folder/heatmaps/${smallBase}_center.pdf --colorList 'white,darkred'
+plotHeatmap -m $folder/heatmaps/${base}_center.gz \
+	-out $folder/heatmaps/${base}_center.pdf --colorList 'white,darkred'
 
-rm $folder/heatmaps/${smallBase}_center.gz
+rm $folder/heatmaps/${base}_center.gz
 
-echo "${smallBase} completed!" >> ${folder}/'meta.txt'
+echo "${base} completed!" >> ${folder}/'meta.txt'
 
 currLine=\$(wc -l < ${folder}/meta.txt)
 if ((\$currLine == $count)); then
@@ -137,7 +132,7 @@ if ((\$currLine == $count)); then
     rm ${folder}/meta.txt
 fi
 EOF
-        sbatch ${folder}/PBS/${smallBase}_epic2'.pbs'
+        sbatch ${folder}/PBS/${base}_epic2'.pbs'
         fi
     done
 done

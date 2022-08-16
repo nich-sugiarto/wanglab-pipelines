@@ -123,7 +123,6 @@ bedtools intersect -v -a aligned/${smallBase}.chr_filt.bam -b \
 
 samtools index aligned/${smallBase}.sorted.filtered.bam
 
-rm ${folder}/aligned/${smallBase}.bam
 rm ${folder}/aligned/${smallBase}.chr_filt.bam
 rm ${folder}/aligned/${smallBase}.sam
 rm ${folder}/aligned/${smallBase}.sorted.bam
