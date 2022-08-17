@@ -9,6 +9,9 @@
 
 # Version Doc: https://docs.google.com/document/d/1CNl0aheyB66F-n6T-ILwqdSCW15p8n4eO7_81I-a-A0/edit
 
+mkdir -p PBS
+mkdir -p log
+
 folder=$(cd "$(dirname "$0")";pwd)  # Stores current folder path as directory
 
 # If a name is not provided
@@ -32,7 +35,6 @@ fi
 cat >${folder}/PBS/diffBind_all'.R' <<EOF
 library(DiffBind)
 
-getwd()
 samples <- read.csv('$1')
 dbObj <- dba(sampleSheet=samples)
 
@@ -59,5 +61,5 @@ cd ${folder}
 
 Rscript ./PBS/diffBind_all.R
 EOF
-cd log
-sbatch ../PBS/diffBind_all.sbatch
+
+sbatch ${folder}/PBS/diffBind_all.sbatch

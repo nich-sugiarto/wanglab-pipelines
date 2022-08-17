@@ -7,10 +7,14 @@
 # This script looks at all the bed files located in the user's desired folder,
 # and runs HOMER's findMotifs program offshore on the discovery HPC. 
 
-mkdir -p homer_sizegiven
+# Requires that HOMER is availble in you PATH variable
+
+# Version Doc: https://docs.google.com/document/d/1XQIU20TJgB4Y8kY7ZXmAgew5-3MXBvvm_9lzMGUufGk/edit
+
 mkdir -p PBS
-folder=$(cd "$(dirname "$0")";pwd)
 mkdir -p log
+
+folder=$(cd "$(dirname "$0")";pwd)
 
 # If a name is not provided
 if [ -z "$1" ]; then 
@@ -20,8 +24,6 @@ if [ -z "$1" ]; then
   echo 	\$1 - target folder
   exit 1
 fi
-
-cd $folder
 
 cd $1
 
@@ -45,8 +47,6 @@ cd ${folder}
 
 findMotifsGenome.pl $1/${base}.bed hg38 homer_sizegiven/${base}/ -size given
 EOF
-
-	cd ${folder}/log
 
 	sbatch ${folder}/PBS/${base}_motif_sizegiven.pbs
 done

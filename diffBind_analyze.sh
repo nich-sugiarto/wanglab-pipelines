@@ -36,11 +36,12 @@ if [ -z "$4" ]; then
   dbObj="dbObj.rds"
 fi
 
-folder=$(cd "$(dirname "$0")";pwd)
+mkdir -p PBS
+mkdir -p log
 
-mkdir -p diffBind
 mkdir -p diffBind/${samp}_over_${control}
 
+folder=$(cd "$(dirname "$0")";pwd)
 subfolder="diffBind/${samp}_over_${control}"
 
 cat >${folder}/PBS/${samp}over${control}'.R' <<EOF

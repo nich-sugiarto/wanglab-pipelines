@@ -15,9 +15,11 @@
 
 # TODO: Test pipeline
 
+# Default parameter cutoffs
 fdr=0.01
 lfc=1
 cnts=20
+
 # If nothing is provided, then use the defaults
 if [ -z "$1" ]; then 
   echo Using the default parameters:

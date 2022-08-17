@@ -1,12 +1,12 @@
 #!/bin/bash
 
 # Alignment pipeline for RNA data. Modified from existing pipeline 6/27/2022
-# Assumes that all fastq files are contained in a fastq folder, and have suffix _1.fq.gz. See areas marked "CHANGE FOR FILE EXTENSION"
+# Assumes that all fastq files are contained in a fastq folder, and have suffix _R1.fastq.gz. See areas marked "CHANGE FOR FILE EXTENSION"
 # Stolen and later adapted from Ruoyun Wang
 
-# Requires the "vanilla" and "R" environments, and the "qc" environment (for fastqc and multiqc)
+# Requires the "alignment" and "R" environments, and the "qc" environment (for fastqc and multiqc)
 
-# Version Doc: https://docs.google.com/document/d/1LL0hB4eDcqZ7_UmBX_KwyiYlm5r1fBio-Y4hdBUdZQw/edit
+# Version Doc: https://docs.google.com/document/d/1lq1KnU1qZx2OIL3b9nn_3gTlF2xTfb9kaZwjQZ46PI4/edit#
 
 # TODO: Ask/find out what the read length was
 # TODO: Check to see if fastqc is recursive (Important!)
@@ -22,17 +22,17 @@ mkdir -p log
 
 folder=$(cd "$(dirname "$0")";pwd)
 
-count=$(find ./ -mindepth 1 -type f -name "*1.fastq.gz" -printf x | wc -c)  # Finds total number of files matching extension. Needed to know when to start qc. CHANGE FOR FILE EXTENSION
+suffix1=_R1.fastq.gz
+
+count=$(find ./fastq -mindepth 1 -type f -name "*${suffix1}" -printf x | wc -c)  # Finds total number of files matching extension. Needed to know when to start qc. CHANGE FOR FILE EXTENSION
 echo There are $count sets of files
 
 # Meta file to know when qc will begin (empty file)
 cat >${folder}/'alignMeta.txt' <<EOF
 EOF
 cd fastq
-for file in *1.fastq.gz  # CHANGE FOR FILE EXTENSION
-do
-
-	base=$(basename "$file" "_R1.fastq.gz")  # CHANGE FOR FILE EXTENSION]
+for file in *${suffix1}; do
+	base=$(basename "$file" "${suffix1}")
 	smallBase=${base%_S1*}
 	echo ${smallBase}
 
@@ -84,8 +84,8 @@ mkdir -p fastqc
 
 # CHANGE FOR FILE EXTENSION
 clumpify.sh \
-	in1=${folder}/fastq/${base}_R1.fastq.gz \
-	in2=${folder}/fastq/${base}_R2.fastq.gz \
+	in1=${folder}/fastq/${base}${suffix1} \
+	in2=${folder}/fastq/${base}${suffix1/R1/R2} \
 	out1=clumped/${smallBase}_R1_clumped.fastq.gz \
 	out2=clumped/${smallBase}_R2_clumped.fastq.gz 
 	

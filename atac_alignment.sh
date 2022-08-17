@@ -2,7 +2,7 @@
 
 # Alignment pipeline for ATAC data. Assumes that all fastq files are in the same folder.
 # Modified from existing pipeline 7/5/2022
-# Assumes that all fastq files are contained within the same folder, and have suffix _1.fq.gz.
+# Assumes that all fastq files are contained within the same folder, and have suffix _R1_001.fastq.gz.
 
 # Requires the "vanilla" environment, and the "qc" environment (for fastqc and multiqc)
 # Version Doc: https://docs.google.com/document/d/1Jz95yFucvhhb8FvUM8XM37M4In3sG5mHYRaFzZuZiK8/edit
@@ -13,7 +13,6 @@
 # Taken from Ruoyun Wang
 
 suffix1=_R1_001.fastq.gz
-suffix2=_R2_001.fastq.gz
 
 folder=$(cd "$(dirname "$0")";pwd)  # Save current folder as a variable
 
@@ -28,7 +27,7 @@ mkdir -p log
 mkdir -p heatmap
 
 # CHANGE FOR FILE EXTENSION
-count=$(find ./ -mindepth 1 -type f -name "*${suffix1}" -printf x | wc -c)  # Finds total number of files matching extension. Needed to know when to start qc. 
+count=$(find ./fastq -mindepth 1 -type f -name "*${suffix1}" -printf x | wc -c)  # Finds total number of files matching extension. Needed to know when to start qc. 
 echo $count files found!
 
 # Meta file to know when qc will begin (empty file)
@@ -60,7 +59,7 @@ source activate alignment
 
 clumpify.sh \
 	in1=./fastq/${base}${suffix1} \
-	in2=./fastq/${base}${suffix2} \
+	in2=./fastq/${base}${suffix1/R1/R2} \
 	out1=deduplicated/${smallBase}_dedup${suffix1} \
 	out2=deduplicated/${smallBase}_dedup${suffix2} \
 	dedupe subs=2
@@ -151,7 +150,5 @@ if ((\$currLine == $count)); then
 	sh atac_qc.sh
 fi
 EOF
-	cd ${folder}/log
-	sbatch ../PBS/${smallBase}.pbs
-	cd ${folder}/fastq
+	sbatch ${folder}/PBS/${smallBase}.pbs
 done

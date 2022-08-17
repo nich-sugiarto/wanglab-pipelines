@@ -131,5 +131,4 @@ Rscript ${base}_qc.R
 
 EOF
 	sbatch ${folder}/PBS/${base}_ATACqc'.pbs'
-	cd ${folder}/aligned
 done

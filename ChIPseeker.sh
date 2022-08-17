@@ -22,13 +22,10 @@ fi
 
 folder=$(cd "$(dirname "$0")";pwd)
 
-mkdir -p ChIPseeker
-
 for file in $1/*.bed; do
   base=$(basename "$file" ".bed")
-  if [[ $base != *_IgG* ]]; then
-    mkdir -p ${folder}/ChIPseeker/${base}
-    cat > ${folder}/PBS/${base}_ChIPseeker.r <<EOF
+  mkdir -p ${folder}/ChIPseeker/${base}
+  cat > ${folder}/PBS/${base}_ChIPseeker.r <<EOF
 library(ChIPseeker)
 library(TxDb.Hsapiens.UCSC.hg38.knownGene)
 library(clusterProfiler)
@@ -110,7 +107,7 @@ dotplot(do, showCategory=20,font.size=6)
 dev.off()
 EOF
 
-    cat >${folder}/PBS/${base}_ChIPseeker'.pbs' <<EOF
+  cat >${folder}/PBS/${base}_ChIPseeker'.pbs' <<EOF
 #!/bin/bash -l
 # Name of the job
 #SBATCH --job-name=ChIPSeeker # Name of the job
@@ -143,7 +140,6 @@ source activate ChIPseeker
 
 Rscript ${folder}/PBS/${base}_ChIPseeker.r
 EOF
-    sbatch ${folder}/PBS/${base}_ChIPseeker.pbs
-  fi
+  sbatch ${folder}/PBS/${base}_ChIPseeker.pbs
 done
 

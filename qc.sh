@@ -8,7 +8,8 @@
 # Vesion control: https://docs.google.com/document/d/1VjdQUg3D2mrZnQEgmvFfvegX_VJpGF-0J2Td-2V7ua4/edit
 
 #TODO: Use/test only on deduplicated reads? 
-#FIXME: Job name seems to be fastqcfastqc instead of fastqc? (minor)
+#FIXME: Are the bam files working?
+
 
 source /dartfs-hpc/rc/lab/W/WangX/sharedconda/miniconda/etc/profile.d/conda.sh
 
@@ -35,8 +36,8 @@ cat >${folder}/PBS/'fastqc.pbs' <<EOF
 #SBATCH --time=24:00:00
 
 # Name of the output files to be created. If not specified the outputs will be joined
-#SBATCH --output=fastqc.%j.out
-#SBATCH --error=fastqc.%j.err
+#SBATCH --output=${folder}/log/fastqc.%j.out
+#SBATCH --error=${folder}/log/fastqc.%j.err
 ################################
 # Enter your code to run below #
 ################################
@@ -59,5 +60,4 @@ multiqc -f -o multiqc -n fastq fastqc/fastq/
 fastqc -o fastqc/bam aligned/*.bam
 multiqc -f -o multiqc -n bam fastqc/bam/
 EOF
-cd log
 sbatch ${folder}/PBS/$base'fastqc.pbs'

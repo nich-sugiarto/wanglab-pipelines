@@ -4,13 +4,19 @@
 # This pipeline takes in one positional argument:
 # 	$1 - target folder
 
+# Adapted from the original homerMotif.sh script, this script is designed to work with diffBind_analyze.sh in that it writes into a subfolder
+# (Happens because diffBind region files are simply named "upregulated" and "downregulated").
 # This script looks at all the bed files located in the user's desired folder,
 # and runs HOMER's findMotifs program offshore on the discovery HPC. 
 
-mkdir -p homer_sizegiven
+# Requires that HOMER is located in your PATH variable
+
+# Version Doc: 
+
 mkdir -p PBS
-folder=$(cd "$(dirname "$0")";pwd)
 mkdir -p log
+
+folder=$(cd "$(dirname "$0")";pwd)
 
 # If a name is not provided
 if [ -z "$1" ]; then 
@@ -45,8 +51,6 @@ cd ${folder}
 
 findMotifsGenome.pl $1/${base}.bed hg38 homer_sizegiven/$1/${base}/ -size given
 EOF
-
-	cd ${folder}/log
 
 	sbatch ${folder}/PBS/${base}_motif_sizegiven.pbs
 done

@@ -4,12 +4,16 @@
 # This pipeline takes in one positional argument:
 # 	$1 - target folder
 
+# Adapted from the original ChIPseeker.sh script, this script is designed to work with diffBind_analyze.sh in that it writes into a subfolder
+# (Happens because diffBind region files are simply named "upregulated" and "downregulated").
 # Runs ChIPSeeker and pathway analysis
+
+# Requres the ChIPseeker environment for R and relevant packages
+
+# Version control available at https://docs.google.com/document/d/13ubx5ldfhRe8YJ2FJZul-D7BSEXY2mM3NvfCUnOyq0Y/edit
 
 # Code taken from some Harvard tutorial that I should really refer back to
 #TODO: Remove dependency on annotables -> BioMaRt better supported?
-
-# Version control available at https://docs.google.com/document/d/1zGZQNSLLzDqYTpqTq0EN40g5AZkHUz23ch6M9H6_edU/edit
 
 #  If a name is not provided
 if [ -z "$1" ]; then 
@@ -22,13 +26,10 @@ fi
 
 folder=$(cd "$(dirname "$0")";pwd)
 
-mkdir -p ChIPseeker/${1}
-
 for file in $1/*.bed; do
   base=$(basename "$file" ".bed")
-  if [[ $base != *_IgG* ]]; then
-    mkdir -p ${folder}/ChIPseeker/$1/${base}
-    cat > ${folder}/PBS/${base}_ChIPseeker.r <<EOF
+  mkdir -p ${folder}/ChIPseeker/$1/${base}
+  cat > ${folder}/PBS/${base}_ChIPseeker.r <<EOF
 library(ChIPseeker)
 library(TxDb.Hsapiens.UCSC.hg38.knownGene)
 library(clusterProfiler)
@@ -143,7 +144,6 @@ source activate ChIPseeker
 
 Rscript ${folder}/PBS/${base}_ChIPseeker.r
 EOF
-    sbatch ${folder}/PBS/${base}_ChIPseeker.pbs
-  fi
+  sbatch ${folder}/PBS/${base}_ChIPseeker.pbs
 done
 
