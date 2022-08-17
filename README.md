@@ -32,9 +32,9 @@ Pipelines for the Wang Lab
 | diffBind_HomerMotif | Reports motifs associated with differentially bound regions | :hammer: |
 | EChO | Fragment analysis for CUT&RUN data | :running: |
 | homerMotif.sh | Generates homer motifs | :white_check_mark: |
-| heatmaps.sh | Generates heatmaps but only from certain annotated peaks (e.g. only distal intergenic regions) | :running: |
+| heatmaps.sh | Generates heatmaps but only from certain annotated peaks (e.g. only distal intergenic regions) | :shipit: |
 | ROSE.sh | Annotates super enhancers | :shipit: |
-| RNA_deseqTwo.sh | DESeq on all RNA samples | :running: |
+| RNA_deseqAll.sh | DESeq on all RNA samples | :running: |
 | RNA_deseqTwo.sh | DESeq on two RNA samples | :running: |
 
 ### Miscellaneous
