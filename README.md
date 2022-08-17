@@ -29,7 +29,7 @@ Pipelines for the Wang Lab
 | diffBind_analyze | Finds and reports differential peak regions using both DESEQ2 and EdgeR | :white_check_mark: |
 | diffBind_ChIPseeker | Annotates regions with ChIPseeker, and performs GO analysis | :hammer: |
 | diffBind_createObject | Creates DiffBind object and saves it for faster downstream processing | :white_check_mark: |
-| diffBind_HomerMotif | Reports motifs associated with differentially bound regions | :hammer: |
+| diffBind_HomerMotif | Reports motifs associated with differentially bound regions | :white_check_mark: |
 | EChO | Fragment analysis for CUT&RUN data | :running: |
 | homerMotif.sh | Generates homer motifs | :white_check_mark: |
 | heatmaps.sh | Generates heatmaps but only from certain annotated peaks (e.g. only distal intergenic regions) | :shipit: |
