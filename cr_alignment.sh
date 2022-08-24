@@ -24,7 +24,7 @@ suffix1=_R1_001.fastq.gz
 
 folder=$(cd "$(dirname "$0")";pwd)  # Saves folder as a variable
 
-count=$(find ./fastq -mindepth 1 -type f -name "*${suffix1}" -printf x | wc -c)  # Finds total number of files matching extension. Needed to know when to start qc. CHANGE FOR FILE EXTENSION
+count=$(find ./fastq -mindepth 1 -type f -name "*${suffix1}" -printf x | wc -c)  # Finds total number of files matching extension.
 echo $count files found!
 # Meta file to know when qc will begin (empty file)
 cat >${folder}/'meta.txt' <<EOF
@@ -69,7 +69,7 @@ source activate alignment
 
 clumpify.sh \
     in1=fastq/${file} \
-    in2=fastq/${base}${suffix1/R1/R2}.gz \
+    in2=fastq/${base}${suffix1/R1/R2} \
     out1=deduplicated/${smallBase}_R1_dedup.fastq.gz \
     out2=deduplicated/${smallBase}_R2_dedup.fastq.gz \
     dedupe subs=2  

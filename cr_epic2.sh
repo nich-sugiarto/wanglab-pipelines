@@ -131,6 +131,8 @@ if ((\$currLine == $count)); then
     sh homerMotif.sh epic2
     cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/ChIPseeker.sh ${folder}
     sh ChIPseeker.sh epic2
+    cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/EChO.sh ${folder}
+    sh EChO.sh
     rm ${folder}/meta.txt
 fi
 EOF
