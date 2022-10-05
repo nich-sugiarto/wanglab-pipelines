@@ -28,8 +28,15 @@ folder=$(cd "$(dirname "$0")";pwd)
 
 for file in $1/*.bed; do
   base=$(basename "$file" ".bed")
+
+  OLDIFS=$IFS
+  IFS='/'     # space is set as delimiter
+  read -ra ADDR <<< "$1"   # str is read into an array as tokens separated by IFS
+  IFS=$OLDIFS
+  subbase=${ADDR[1]}
+  
   mkdir -p ${folder}/ChIPseeker/$1/${base}
-  cat > ${folder}/PBS/${base}_ChIPseeker.r <<EOF
+  cat > ${folder}/PBS/${subbase}_${base}_ChIPseeker.r <<EOF
 library(ChIPseeker)
 library(TxDb.Hsapiens.UCSC.hg38.knownGene)
 library(clusterProfiler)
@@ -80,7 +87,8 @@ entrezids <- annot\$geneId %>%
   as.character() %>%
   unique()
 
-ego <- enrichGO(gene = entrezids,
+# BP Subontology
+egoBP <- enrichGO(gene = entrezids,
                 keyType = "ENTREZID",
                 OrgDb = org.Hs.eg.db,
                 ont = "BP",
@@ -88,33 +96,73 @@ ego <- enrichGO(gene = entrezids,
                 qvalueCutoff = 0.05,
                 readable = TRUE)
 
-egoSim <- simplify(ego, cutoff=0.7, by="p.adjust", select_fun=min)
-cluster_summary <- data.frame(ego)
-cluster_summary_sim <- data.frame(egoSim)
-write.csv(cluster_summary, "$folder/ChIPseeker/$1/${base}/${base}_clusterProfiler.csv")
-write.csv(cluster_summary_sim, "$folder/ChIPseeker/$1/${base}/${base}_clusterProfilerSim.csv")
+cluster_summary <- data.frame(egoBP)
+write.csv(cluster_summary, "$folder/ChIPseeker/$1/${base}/${base}_clusterProfiler_BP.csv")
 
-pdf(file = "$folder/ChIPseeker/$1/${base}/${base}_GO.pdf")
-dotplot(ego,showCategory = 20,font.size=6)
+pdf(file = "$folder/ChIPseeker/$1/${base}/${base}_GO_BP.pdf", height = 1080, width = 1080)
+dotplot(egoBP, showCategory = 20,font.size=6)
 dev.off()
 
-ekegg <- enrichKEGG(gene = entrezids,
-                    organism = 'hsa',
-                    pvalueCutoff = 0.05)
-pdf(file = "$folder/ChIPseeker/$1/${base}/${base}_KEGG.pdf")
-dotplot(ekegg,showCategory = 20,font.size=6)
+# MF Subontology
+egoMF <- enrichGO(gene = entrezids,
+                keyType = "ENTREZID",
+                OrgDb = org.Hs.eg.db,
+                ont = "MF",
+                pAdjustMethod = "BH",
+                qvalueCutoff = 0.05,
+                readable = TRUE)
+
+cluster_summary <- data.frame(egoMF)
+write.csv(cluster_summary, "$folder/ChIPseeker/$1/${base}/${base}_clusterProfiler_MF.csv")
+
+pdf(file = "$folder/ChIPseeker/$1/${base}/${base}_GO_MF.pdf")
+dotplot(egoMF, showCategory = 20,font.size=6)
 dev.off()
 
-do = enrichDO(entrezids)
-pdf(file = "$folder/ChIPseeker/$1/${base}/${base}_DO.pdf")
-dotplot(do, showCategory=20,font.size=6)
+# CC Subontology
+egoCC <- enrichGO(gene = entrezids,
+                keyType = "ENTREZID",
+                OrgDb = org.Hs.eg.db,
+                ont = "CC",
+                pAdjustMethod = "BH",
+                qvalueCutoff = 0.05,
+                readable = TRUE)
+
+cluster_summary <- data.frame(egoCC)
+write.csv(cluster_summary, "$folder/ChIPseeker/$1/${base}/${base}_clusterProfiler_CC.csv")
+
+pdf(file = "$folder/ChIPseeker/$1/${base}/${base}_GO_CC.pdf")
+dotplot(egoCC, showCategory = 20,font.size=6)
 dev.off()
+
+# # GSEA
+# gsea <- gseGO(geneList = entrezids,
+#                 keyType = "ENTREZID",
+#                 OrgDb = org.Hs.eg.db,
+#                 ont = "ALL",
+#                 pAdjustMethod = "BH")
+
+# pdf(file = "$folder/ChIPseeker/$1/${base}/${base}_GSEA.png", height = 1080, width = 1080)
+# dotplot(gsea, showCategory = 20,font.size=6)
+# dev.off()
+
+# ekegg <- enrichKEGG(gene = entrezids,
+#                     organism = 'hsa',
+#                     pvalueCutoff = 0.05)
+# png(file = "$folder/ChIPseeker/$1/${base}/${base}_KEGG.png", height = 1080, width = 1080)
+# dotplot(ekegg,showCategory = 20,font.size=6)
+# dev.off()
+
+# do = enrichDO(entrezids)
+# png(file = "$folder/ChIPseeker/$1/${base}/${base}_DO.png", height = 1080, width = 1080)
+# dotplot(do, showCategory=20,font.size=6)
+# dev.off()
 EOF
 
-    cat >${folder}/PBS/${base}_ChIPseeker'.pbs' <<EOF
+    cat >${folder}/PBS/${subbase}_${base}_ChIPseeker'.pbs' <<EOF
 #!/bin/bash -l
 # Name of the job
-#SBATCH --job-name=ChIPSeeker # Name of the job
+#SBATCH --job-name=${subbase}_ChIPSeeker # Name of the job
 
 # Number of compute nodes
 #SBATCH --nodes=1
@@ -142,8 +190,8 @@ cd ${folder}
 source /dartfs-hpc/rc/lab/W/WangX/sharedconda/miniconda/etc/profile.d/conda.sh
 source activate ChIPseeker
 
-Rscript ${folder}/PBS/${base}_ChIPseeker.r
+Rscript ${folder}/PBS/${subbase}_${base}_ChIPseeker.r
 EOF
-  sbatch ${folder}/PBS/${base}_ChIPseeker.pbs
+  sbatch ${folder}/PBS/${subbase}_${base}_ChIPseeker.pbs
 done
 

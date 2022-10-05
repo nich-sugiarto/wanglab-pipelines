@@ -61,11 +61,11 @@ clumpify.sh \
 	in1=./fastq/${base}${suffix1} \
 	in2=./fastq/${base}${suffix1/R1/R2} \
 	out1=deduplicated/${smallBase}_dedup${suffix1} \
-	out2=deduplicated/${smallBase}_dedup${suffix2} \
+	out2=deduplicated/${smallBase}_dedup${suffix1/R1/R2} \
 	dedupe subs=2
 
 gunzip -c deduplicated/${smallBase}_dedup${suffix1} > deduplicated/${smallBase}_dedup_R1.fastq
-gunzip -c deduplicated/${smallBase}_dedup${suffix2} > deduplicated/${smallBase}_dedup_R2.fastq
+gunzip -c deduplicated/${smallBase}_dedup${suffix1/R1/R2} > deduplicated/${smallBase}_dedup_R2.fastq
 
 bbduk.sh \
 	in1=deduplicated/${smallBase}_dedup_R1.fastq \

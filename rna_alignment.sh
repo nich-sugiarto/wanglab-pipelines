@@ -22,7 +22,7 @@ mkdir -p log
 
 folder=$(cd "$(dirname "$0")";pwd)
 
-suffix1=_R1.fastq.gz
+suffix1=_R1_001.fastq.gz
 
 count=$(find ./fastq -mindepth 1 -type f -name "*${suffix1}" -printf x | wc -c)  # Finds total number of files matching extension. Needed to know when to start qc. CHANGE FOR FILE EXTENSION
 echo There are $count sets of files
@@ -33,7 +33,7 @@ EOF
 cd fastq
 for file in *${suffix1}; do
 	base=$(basename "$file" "${suffix1}")
-	smallBase=${base%_S1*}
+	smallBase=${base%_S*}
 	echo ${smallBase}
 
 	cat >${folder}/counts/${smallBase}_RPKM'.R' <<EOF
@@ -49,6 +49,7 @@ final<- data.frame(geneid,data,rpkm)
 write.table(final,file="${smallBase}_RPKM.csv",row.names = FALSE,quote = FALSE,sep = ",")
 EOF
 
+# DO NOT change cpus-per-task. Needs to be >= 8 for STAR alignment
 	cat >${folder}/PBS/$smallBase'.sbatch' <<EOF
 #!/bin/bash -l
 # Name of the job
@@ -102,7 +103,7 @@ bbduk.sh \
 rm clumped/${smallBase}*
 
 STAR \
-	--genomeDir /dartfs-hpc/rc/lab/W/WangX/Genomes_and_extra/hg38_STAR  \
+	--genomeDir /dartfs-hpc/rc/lab/W/WangX/Genomes_and_extra/hg38_STAR_core \
 	--runThreadN 8 \
 	--readFilesIn trimmed/${smallBase}_R1_trimmed.fastq trimmed/${smallBase}_R2_trimmed.fastq \
 	--outFileNamePrefix aligned/${smallBase} \
@@ -121,20 +122,23 @@ bamCoverage -b aligned/${smallBase}Aligned.sortedByCoord.out.bam -o bigwig/${sma
 rm aligned/${smallBase}Aligned.sortedByCoord.out.bam*
 
 featureCounts -T 8 -s 0 \
-	-g gene_name -a /dartfs-hpc/rc/lab/W/WangX/Genomes_and_extra/hg38.knownGene.gtf \
+	-g gene_name -a /dartfs-hpc/rc/lab/W/WangX/Genomes_and_extra/refdata-gex-GRCh38-2020-A/genes/genes.gtf \
 	-o counts/${smallBase}_featurecounts.txt \
 	-p aligned/${smallBase}_sorted.bam
+
+grep -v MT- counts/${smallBase}_featurecounts.txt > counts/${smallBase}_featurecounts_MTfiltered.txt
 
 cp counts/${smallBase}_featurecounts.txt.summary results
 
 cd counts/
 	
-cut -f 7 ${smallBase}_featurecounts.txt > ${smallBase}_featurecounts_Count.txt
-cut -f 1 ${smallBase}_featurecounts.txt > ${smallBase}_featurecounts_Name.txt
-cut -f 6 ${smallBase}_featurecounts.txt > ${smallBase}_featurecounts_Length.txt
+cut -f 7 ${smallBase}_featurecounts_MTfiltered.txt > ${smallBase}_featurecounts_Count.txt
+cut -f 1 ${smallBase}_featurecounts_MTfiltered.txt > ${smallBase}_featurecounts_Name.txt
+cut -f 6 ${smallBase}_featurecounts_MTfiltered.txt > ${smallBase}_featurecounts_Length.txt
 
-source activate R
-Rscript ${smallBase}_RPKM.R
+source deactivate
+source activate deseq
+# Rscript ${smallBase}_RPKM.R
 
 echo "${smallBase} completed!" >> ${folder}/'alignMeta.txt'
 
@@ -147,6 +151,8 @@ echo \${currLine}
 if ((\$currLine == $count)); then
     cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/qc.sh ${folder}
     sh qc.sh
+	cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/rna_multi.sh ${folder}
+    sh rna_multi.sh
     rm ${folder}/alignMeta.txt
 	rmdir clumped/
 	rmdir trimmed/

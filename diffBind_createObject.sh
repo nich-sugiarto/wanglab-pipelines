@@ -52,10 +52,10 @@ cat >${folder}/PBS/diffBind_all.sbatch <<EOF
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=16G
 #SBATCH --time=7:00:00
-#SBATCH -o ${folder}/log/${NAME}_%j.txt -e ${NAME}_%j.err.txt
+#SBATCH -o ${folder}/log/${NAME}_%j.txt -e ${folder}/log/${NAME}_%j.err.txt
 
 #------- END OF HEADER -------#
-source activate workflowr
+source activate ATACQC
 
 cd ${folder}
 
