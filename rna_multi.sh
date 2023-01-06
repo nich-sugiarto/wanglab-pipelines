@@ -37,30 +37,23 @@ EOF
 
 cd counts
 
-# Create the meta text (required by DESEQ)
 cat > ${folder}/multideseq/meta.txt<<EOF
-    sampletype
-EOF
-
 i=0  # Initialize the file count
+=======
+i=0
+>>>>>>> c8dc420fd859eeb81cd235c61504645cf9282f9d
 for file in *_featurecounts_Count.txt
 do
 	echo "${file%_feature*}  ${file%_R*}" >> ${folder}/multideseq/meta.txt
 	echo ${file} added
-	# Add the found file to the overall deseq matrix
 	cat >>${folder}/multideseq/multideseq'.R' <<EOF
-
-data${i} <- read.table("../counts/${file}",header = TRUE,skip=1)
 names(data${i})[names(data${i}) == "aligned.${file%_feature*}_sorted.bam"] <- "${file%_feature*}"
 EOF
 dcount+="data${i},"
 ((i++))
 done
 
-# Rest of the analysis on the compiled dataframe
 cat >>${folder}/multideseq/multideseq'.R' <<EOF
-name1 <- read.table("../counts/${file%_featurecounts_Count.txt}_featurecounts_Name.txt",header = TRUE,skip=1)
-data <- data.frame(${dcount}row.names = name1\$Geneid)
 meta <- read.table("meta.txt", header=T, row.names=1)
 
 dds <- DESeqDataSetFromMatrix(countData = data, colData = meta, design = ~ sampletype)
