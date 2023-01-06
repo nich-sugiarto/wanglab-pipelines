@@ -13,14 +13,14 @@
 
 # Version Doc: https://docs.google.com/document/d/1HMoJZ5QpscD6h2Gb1v2hWVpKfk1sxz4MzuVZoArSHyw/edit
 
-# TODO: Test pipeline
+# TODO: Add EChO
 
 # Default parameter cutoffs
 fdr=0.01
 lfc=1
 cnts=20
 
-suffix=.sorted.filtered.bam
+suffix1=.sorted.filtered.bam
 
 # If nothing is provided, then use the defaults
 if [ -z "$1" ]; then 
@@ -40,33 +40,31 @@ fi
 # Setup: Create needed folders
 mkdir -p PBS
 mkdir -p log
-mkdir -p epic2
-mkdir -p heatmaps
+mkdir -p mergedBed
+mkdir -p mergedHeatmaps
 
 folder=$(cd "$(dirname "$0")";pwd)
 
-count=$(find ./aligned -mindepth 1 -type f -name "*${suffix}" -printf x | wc -c)  # Finds total number of files matching extension. CHANGE FOR FILE EXTENSION
-groupCount=$(find ./aligned -mindepth 1 -type f -name "*IgG*${suffix}" -printf x | wc -c)  # Finds total number of control (IgG) files. CHANGE FOR FILE EXTENSION
-
-((count-=groupCount))
+count=$(find ./mergedBam -mindepth 1 -type f -name "*_sortedMerged.bam" -printf x | wc -c)  # Finds total number of files matching extension. CHANGE FOR FILE EXTENSION
 
 echo "${count} peakcalling to be done..."
 
 # Meta file to know when qc will begin (empty file)
-cat >${folder}/'meta.txt' <<EOF
+cat >${folder}/'pcMeta.txt' <<EOF
 EOF
 
-cd aligned
-for file in *_IgG${suffix}; do
-    igGbase=$(basename "$file" "${suffix}")
-    groupprefix=${igGbase%%_IgG}
-    for f in $folder/aligned/${groupprefix}*${suffix}; do
-        base=$(basename "$f" "${suffix}")
+cd ${folder}/aligned
+for file in *IgG*${suffix1}; do
+    igGbase=$(basename "$file" "${suffix1}")
+    groupprefix=${igGbase%%_IgG*}
+    echo $igGbase
+    for f in $folder/mergedBam/${groupprefix}*_sortedMerged.bam; do
+        base=$(basename "$f" "_sortedMerged.bam")
         if [ "$base" != "$igGbase" ]; then
-            cat >${folder}/PBS/${base}_epic2'.pbs' <<EOF
+            cat >${folder}/PBS/${base}_mergePeakcalling'.pbs' <<EOF
 #!/bin/bash -l
 # Name of the job
-#SBATCH --job-name=epic2_${base}  # Name of the job
+#SBATCH --job-name=${base}_mergePC  # Name of the job
 
 # Number of compute nodes
 #SBATCH --nodes=1
@@ -84,8 +82,8 @@ for file in *_IgG${suffix}; do
 #SBATCH --time=2:00:00
 
 # Name of the output files to be created. If not specified the outputs will be joined
-#SBATCH --output=${folder}/log/${base}_epic2.%j.out
-#SBATCH --error=${folder}/log/${base}_epic2.%j.err
+#SBATCH --output=${folder}/log/${base}_mergePeakcalling.%j.out
+#SBATCH --error=${folder}/log/${base}_mergePeakcalling.%j.err
 ################################
 # Enter your code to run below #
 ################################
@@ -96,53 +94,48 @@ source activate peakcalling
 cd ${folder}
 
 epic2 \
-  --treatment $folder/aligned/${base}${suffix} \
-  --control $folder/aligned/${igGbase}${suffix} \
+  --treatment $folder/mergedBam/${base}_sortedMerged.bam \
+  --control $folder/aligned/$file \
   --genome hg38 \
-  -o epic2/${base}.bed
+  -o mergedBed/${base}.bed
 
-awk '\$9 <= ${fdr} {print \$0}' epic2/${base}.bed > epic2/${base}_FDR_${fdr}.bed
+awk '\$9 <= ${fdr} {print \$0}' mergedBed/${base}.bed > mergedBed/${base}_FDR_${fdr}.bed
 
-awk '\$10 >= ${lfc} {print \$0}' epic2/${base}_FDR_${fdr}.bed > epic2/${base}_log_${lfc}.bed
+awk '\$10 >= ${lfc} {print \$0}' mergedBed/${base}_FDR_${fdr}.bed > mergedBed/${base}_log_${lfc}.bed
 
-awk '\$7 > ${cnts} {print \$0}' epic2/${base}_log_${lfc}.bed > epic2/${base}.bed
+awk '\$7 > ${cnts} {print \$0}' mergedBed/${base}_log_${lfc}.bed > mergedBed/${base}.bed
 
-rm epic2/${base}_FDR_${fdr}.bed
-rm epic2/${base}_log_${lfc}.bed
+rm mergedBed/${base}_FDR_${fdr}.bed
+rm mergedBed/${base}_log_${lfc}.bed
 
 conda activate alignment
 
 computeMatrix reference-point \
 	--referencePoint center \
 	-b 5000 -a 5000 \
-	-R epic2/${base}.bed \
-	-S normalized_bw/${base}_normalized.bw  \
-	-o $folder/heatmaps/${base}_center.gz --missingDataAsZero -p max
+	-R mergedBed/${base}.bed \
+	-S mergedBigWig/${base}_merged.bw  \
+	-o $folder/mergedHeatmaps/${base}_center.gz --missingDataAsZero -p max
 
-plotHeatmap -m $folder/heatmaps/${base}_center.gz \
-	-out $folder/heatmaps/${base}_center.pdf --colorList 'white,darkred'
+plotHeatmap -m $folder/mergedHeatmaps/${base}_center.gz \
+	-out $folder/mergedHeatmaps/${base}_center.pdf --colorList 'white,darkred'
 
-rm $folder/heatmaps/${base}_center.gz
+rm $folder/mergedHeatmaps/${base}_center.gz
 
-echo "${base} completed!" >> ${folder}/'meta.txt'
+echo "${base} completed!" >> ${folder}/'pcMeta.txt'
 
-currLine=\$(wc -l < ${folder}/meta.txt)
+currLine=\$(wc -l < ${folder}/pcMeta.txt)
 if ((\$currLine == $count)); then
     source activate base
     cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/homerMotif.sh ${folder}
-    sh homerMotif.sh epic2
+    sh homerMotif.sh mergedBed
     cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/ChIPseeker.sh ${folder}
-    sh ChIPseeker.sh epic2
-    cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/EChO.sh ${folder}
-    sh EChO.sh
-    rm ${folder}/meta.txt
+    sh ChIPseeker.sh mergedBed
+    rm ${folder}/pcMeta.txt
 fi
 EOF
-        sbatch ${folder}/PBS/${base}_epic2'.pbs'
+        echo ${base}
+        sbatch ${folder}/PBS/${base}_mergePeakcalling'.pbs'
         fi
     done
 done
-
-
-
-

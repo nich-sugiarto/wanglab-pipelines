@@ -5,8 +5,6 @@
 
 # Requires the "qc" environment
 
-# Vesion control: https://docs.google.com/document/d/1VjdQUg3D2mrZnQEgmvFfvegX_VJpGF-0J2Td-2V7ua4/edit
-
 #TODO: Use/test only on deduplicated reads? 
 #FIXME: Are the bam files working?
 

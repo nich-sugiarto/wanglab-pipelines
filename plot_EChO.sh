@@ -1,8 +1,6 @@
 #!/bin/bash
 
-# ADD COMMENT DESCRIPTION HERE
-
-# Version Doc: 
+# Plots the EChO results from EChO.sh. Should automatically trigger
 
 # Script automatically generated using the "slouch" command on Thu Aug 18 16:21:35 EDT 2022
 
@@ -12,8 +10,9 @@ folder=$(cd "$(dirname "$0")";pwd)  # Stores current folder as a variable
 mkdir -p PBS
 mkdir -p log
 
+# For each sample group (determined by IgG control)
 for file in aligned/*_IgG*.sorted.filtered.bam; do
-    groupPrefix=${file%%_IgG*.sorted.filtered.bam}
+    groupPrefix=${file%%_IgG*.sorted.filtered.bam}  # 
 	groupPrefix=${groupPrefix#"aligned/"}
     echo ${groupPrefix}
     cat >${folder}/PBS/${groupPrefix}_EChO'.R' <<EOF
@@ -22,11 +21,12 @@ library(ggplot2)
 getwd()
 df <- data.frame(matrix(ncol = 2, nrow = 0))
 EOF
-
+    # For each sample in that group
     for f in ./EChO_results/${groupPrefix}*.EChO.bed; do
         base=$(basename "$f" "_foci.EChO.bed")
         base=${base#"./EchO_results/CR_O422T"}
         echo ${base}
+            # Add that file to the overall dataframe
             cat >>${folder}/PBS/${groupPrefix}_EChO'.R' <<EOF
 
 df2 <- read.table("$f", sep = "\t")
@@ -37,6 +37,7 @@ df <- rbind(df, df2)
 EOF
     done
 
+    # Create the graph
     cat >>${folder}/PBS/${groupPrefix}_EChO'.R' <<EOF
 
 png("EChO_results/${groupPrefix}.png", width = 1080, height = 720)
@@ -44,6 +45,7 @@ png("EChO_results/${groupPrefix}.png", width = 1080, height = 720)
 dev.off()
 EOF
 
+    # Actually run the scripts
     cat >${folder}/PBS/${groupPrefix}_plotEChO'.sbatch' <<EOF
 #!/bin/bash -l
 # Name of the job

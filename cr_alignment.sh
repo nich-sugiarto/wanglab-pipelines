@@ -5,12 +5,8 @@
 
 # Requires the "alignment" environment, and the "qc" environment (for fastqc and multiqc)
 
-# Version Doc: https://docs.google.com/document/d/1LL0hB4eDcqZ7_UmBX_KwyiYlm5r1fBio-Y4hdBUdZQw/edit
-
-# TODO: Use chromap instead of bowtie2 for faster and more accurate(?) alignment
 # TODO: Keep deduplicated for fastqc?
 # TODO: Test pipeline
-# TODO: Add peakcalling and downstream analysis (ChIPSeeker, Motif Analysis) to run automatically with it
 
 # Setup: Create needed folders
 mkdir -p PBS
@@ -26,6 +22,31 @@ folder=$(cd "$(dirname "$0")";pwd)  # Saves folder as a variable
 
 count=$(find ./fastq -mindepth 1 -type f -name "*${suffix1}" -printf x | wc -c)  # Finds total number of files matching extension.
 echo $count files found!
+
+# Error handling for if there are 0 files
+if (($count == 0)); then
+	echo Warning! There were no files that were found.
+	echo Check to ensure that the suffix is correct. Otherwise, it may be that each fastq file is contained within its own subfolder.
+	echo Would you like to expand all subfolders into this one? [y/n]:
+	
+	# Prompt user to whether they want to try and expand out the subfolders
+	read resp
+
+	if [[ "$resp" == "y" ]]; then
+		echo Expanding out...
+		cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/ChIPseeker.sh ./
+		sh move.sh
+		echo Done. Proceeding as normal...
+		rm move.sh
+	elif [[ "$resp" == "n" ]]; then
+		echo Terminating run...
+		exit 1
+	else
+		echo Error! Invalid input. Terminating run...
+		exit 1
+	fi
+fi
+
 # Meta file to know when qc will begin (empty file)
 cat >${folder}/'meta.txt' <<EOF
 EOF

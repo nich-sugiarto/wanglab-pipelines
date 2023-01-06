@@ -30,12 +30,12 @@ Pipelines for the Wang Lab
 | diffBind_ChIPseeker | Annotates regions with ChIPseeker, and performs GO analysis | :hammer: |
 | diffBind_createObject | Creates DiffBind object and saves it for faster downstream processing | :white_check_mark: |
 | diffBind_HomerMotif | Reports motifs associated with differentially bound regions | :white_check_mark: |
-| EChO | Fragment analysis for CUT&RUN data | :running: |
+| EChO | Fragment analysis for CUT&RUN data | :white_check_mark: |
 | homerMotif.sh | Generates homer motifs | :white_check_mark: |
 | heatmaps.sh | Generates heatmaps but only from certain annotated peaks (e.g. only distal intergenic regions) | :shipit: |
 | ROSE.sh | Annotates super enhancers | :shipit: |
-| RNA_deseqAll.sh | DESeq on all RNA samples | :running: |
-| RNA_deseqTwo.sh | DESeq on two RNA samples | :running: |
+| rna_multi.sh | DESeq on all RNA samples | :white_check_mark: |
+| rna_twoThree.sh | DESeq on two RNA samples, each with three replicates | :white_check_mark: |
 
 ### Miscellaneous
 | Pipeline name | Description | Status |

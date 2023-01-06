@@ -2,13 +2,11 @@
 
 # Alignment pipeline for ATAC data. Assumes that all fastq files are in the same folder.
 # Modified from existing pipeline 7/5/2022
-# Assumes that all fastq files are contained within the same folder, and have suffix _R1_001.fastq.gz.
+# Assumes that all fastq files are contained within the same folder
 
-# Requires the "vanilla" environment, and the "qc" environment (for fastqc and multiqc)
-# Version Doc: https://docs.google.com/document/d/1Jz95yFucvhhb8FvUM8XM37M4In3sG5mHYRaFzZuZiK8/edit
+# Requires the "alignment" environment, and the "qc" environment (for fastqc and multiqc)
 
 # TODO: Add comments for the generated script itself
-# TODO: Test qc triggers correctly
 
 # Taken from Ruoyun Wang
 
@@ -29,6 +27,30 @@ mkdir -p heatmap
 # CHANGE FOR FILE EXTENSION
 count=$(find ./fastq -mindepth 1 -type f -name "*${suffix1}" -printf x | wc -c)  # Finds total number of files matching extension. Needed to know when to start qc. 
 echo $count files found!
+
+# Error handling for if there are 0 files
+if (($count == 0)); then
+	echo Warning! There were no files that were found.
+	echo Check to ensure that the suffix is correct. Otherwise, it may be that each fastq file is contained within its own subfolder.
+	echo Would you like to expand all subfolders into this one? [y/n]:
+	
+	# Prompt user to whether they want to try and expand out the subfolders
+	read resp
+
+	if [[ "$resp" == "y" ]]; then
+		echo Expanding out...
+		cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/ChIPseeker.sh ./
+		sh move.sh
+		echo Done. Proceeding as normal...
+		rm move.sh
+	elif [[ "$resp" == "n" ]]; then
+		echo Terminating run...
+		exit 1
+	else
+		echo Error! Invalid input. Terminating run...
+		exit 1
+	fi
+fi
 
 # Meta file to know when qc will begin (empty file)
 cat >${folder}/'meta.txt' <<EOF
@@ -61,11 +83,11 @@ clumpify.sh \
 	in1=./fastq/${base}${suffix1} \
 	in2=./fastq/${base}${suffix1/R1/R2} \
 	out1=deduplicated/${smallBase}_dedup${suffix1} \
-	out2=deduplicated/${smallBase}_dedup${suffix2} \
+	out2=deduplicated/${smallBase}_dedup${suffix1/R1/R2} \
 	dedupe subs=2
 
 gunzip -c deduplicated/${smallBase}_dedup${suffix1} > deduplicated/${smallBase}_dedup_R1.fastq
-gunzip -c deduplicated/${smallBase}_dedup${suffix2} > deduplicated/${smallBase}_dedup_R2.fastq
+gunzip -c deduplicated/${smallBase}_dedup${suffix1/R1/R2} > deduplicated/${smallBase}_dedup_R2.fastq
 
 bbduk.sh \
 	in1=deduplicated/${smallBase}_dedup_R1.fastq \

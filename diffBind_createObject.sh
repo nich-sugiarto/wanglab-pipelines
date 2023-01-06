@@ -5,9 +5,8 @@
 # This pipeline requires two positional arguments:
 # 		$1 - location of the meta text in question
 # 		$2 - The name of the generated DiffBind object (default is dbObj)
-# Requires the workflowr environment only for its installation of DiffBind
-
-# Version Doc: https://docs.google.com/document/d/1CNl0aheyB66F-n6T-ILwqdSCW15p8n4eO7_81I-a-A0/edit
+# Requires the ATACQC because apparently that's where DiffBind is
+# TODO: create separate DiffBind environment?
 
 mkdir -p PBS
 mkdir -p log
@@ -19,8 +18,8 @@ if [ -z "$1" ]; then
   echo ERROR: TARGET FOLDER WAS NOT SPECIFIED
   echo USAGE:
   echo This pipeline takes in two positional arguments:
-  echo 	\$1 - target folder
-  echo 	"\$2 - The name of the generated DiffBind object (default is dbObj)"
+  echo 	"\$1 - target folder"
+  echo 	"\$2 - (Optional) The name of the generated DiffBind object (default is dbObj)"
   exit 1
 fi
 
@@ -52,10 +51,10 @@ cat >${folder}/PBS/diffBind_all.sbatch <<EOF
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=16G
 #SBATCH --time=7:00:00
-#SBATCH -o ${folder}/log/${NAME}_%j.txt -e ${NAME}_%j.err.txt
+#SBATCH -o ${folder}/log/${NAME}_%j.txt -e ${folder}/log/${NAME}_%j.err.txt
 
 #------- END OF HEADER -------#
-source activate workflowr
+source activate ATACQC
 
 cd ${folder}
 

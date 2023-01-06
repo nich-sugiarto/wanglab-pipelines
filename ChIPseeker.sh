@@ -9,8 +9,6 @@
 # Code taken from some Harvard tutorial that I should really refer back to
 #TODO: Remove dependency on annotables -> BioMaRt better supported?
 
-# Version control available at https://docs.google.com/document/d/1zGZQNSLLzDqYTpqTq0EN40g5AZkHUz23ch6M9H6_edU/edit
-
 #  If a name is not provided
 if [ -z "$1" ]; then 
   echo ERROR: TARGET FOLDER WAS NOT SPECIFIED

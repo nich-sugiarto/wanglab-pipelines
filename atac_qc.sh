@@ -1,13 +1,9 @@
 #!/bin/bash
 
-# BROKEN - DO NOT USE
-
 # Quality control specific for ATAC data. Includes library size estimation, fragment size distribution, 
 # Promoter/Transcript (PT) body score, Nucleosome Free Regions (NFR) scores, and Transcription Start Site (TSS) scores.
 
 # Code taken from https://bioconductor.org/packages/release/bioc/vignettes/ATACseqQC/inst/doc/ATACseqQC.html#Split_reads
-
-# Version control available at https://docs.google.com/document/d/1lCYRKcYol6praX75HFxb90SaNrrugmx8aanxGQu3Ups/edit
 
 # Script automatically generated using the "slouch" command on Wed Jun 29 15:29:27 EDT 2022
 

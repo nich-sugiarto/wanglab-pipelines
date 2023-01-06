@@ -1,8 +1,6 @@
 #!/bin/bash
 
-# ADD COMMENT DESCRIPTION HERE
-
-# Version Doc: 
+# Realigns 10x sample to fit what velocyto needs to do pseudotime
 
 # Script automatically generated using the "slouch" command on Tue Aug  9 11:57:02 EDT 2022
 
@@ -17,11 +15,11 @@ fi
 target=$1
 folder=$(cd "$(dirname "$0")";pwd)  # Stores current folder as a variable
 
-# Set up required files
+# Setup - Generate required folders
 mkdir -p PBS
 mkdir -p log
 
-cat >${folder}/PBS/velyto_align'.pbs' <<EOF
+cat >${folder}/PBS/velocyto_align'.pbs' <<EOF
 #!/bin/bash -l
 # Name of the job
 #SBATCH --job-name=velocyto_align # Name of the job
@@ -58,4 +56,4 @@ velocyto run10x \
 
 EOF
 
-sbatch ${folder}/PBS/velyto_align'.pbs'
+sbatch ${folder}/PBS/velocyto_align'.pbs'

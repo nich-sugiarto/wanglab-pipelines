@@ -1,8 +1,7 @@
 #!/bin/bash
 
-# ADD COMMENT DESCRIPTION HERE
-
-# Version Doc: 
+# Runs EChO analysis to generate a bed file of foci of enriched fragment regions.
+# Calls plot_EChO.sh afterwards automatically to plot said regions
 
 # Script automatically generated using the "slouch" command on Tue Aug  9 16:36:50 EDT 2022
 
@@ -13,8 +12,10 @@ mkdir -p PBS
 mkdir -p log
 mkdir -p EChO_results
 
-count=$(find ./aligned -mindepth 1 -type f -name "*.sorted.filtered.bam" -printf x | wc -c)  # Finds total number of files matching extension.
-IgGcount=$(find ./aligned -mindepth 1 -type f -name "*IgG*.sorted.filtered.bam" -printf x | wc -c)  # Finds total number of IgG files matching extension.
+suffix=.sorted.filtered.bam
+
+count=$(find ./aligned -mindepth 1 -type f -name "*${suffix}" -printf x | wc -c)  # Finds total number of files matching extension.
+IgGcount=$(find ./aligned -mindepth 1 -type f -name "*IgG*${suffix}" -printf x | wc -c)  # Finds total number of IgG files matching extension.
 ((count-=IgGcount))
 
 echo $count files found!
@@ -24,8 +25,8 @@ EOF
 
 cd aligned
 
-for file in *.sorted.filtered.bam; do
-	base=$(basename "$file" ".sorted.filtered.bam")
+for file in *${suffix}; do
+	base=$(basename "$file" "${suffix}")
 	# Check to make sure not control
 	if [[ ${base} != *"IgG"* ]]; then
 		cat >${folder}/PBS/${base}_EChO'.sbatch' <<EOF
@@ -66,7 +67,6 @@ samtools sort -n aligned/${base}.bam -o EChO_results/${base}.nSorted.bam
 # Writes alignments to bedpe format
 bedtools bamtobed -bedpe -i EChO_results/${base}.nSorted.bam > ${folder}/EChO_results/${base}_frags.bed
 
-# Temporarily commented out for debugging purposes
 rm aligned/${base}.bam
 rm EChO_results/${base}.nSorted.bam
 

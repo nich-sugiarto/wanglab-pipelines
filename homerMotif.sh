@@ -7,9 +7,7 @@
 # This script looks at all the bed files located in the user's desired folder,
 # and runs HOMER's findMotifs program offshore on the discovery HPC. 
 
-# Requires that HOMER is availble in you PATH variable
-
-# Version Doc: https://docs.google.com/document/d/1XQIU20TJgB4Y8kY7ZXmAgew5-3MXBvvm_9lzMGUufGk/edit
+# Requires that HOMER is available in you PATH variable
 
 mkdir -p PBS
 mkdir -p log
