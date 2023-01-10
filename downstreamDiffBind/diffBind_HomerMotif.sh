@@ -11,8 +11,6 @@
 
 # Requires that HOMER is located in your PATH variable
 
-# Version Doc: 
-
 mkdir -p PBS
 mkdir -p log
 

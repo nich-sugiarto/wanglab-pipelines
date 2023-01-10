@@ -45,7 +45,8 @@ cd ${folder}
 annotatePeaks.pl ${folder}/$1/${base}.bed hg38 > ${folder}/geneLists/${base}.txt
 
 cat ${folder}/geneLists/${base}.txt | \
-	awk -F '\t' -v OFS='\t' ' \$13 != "" && \$14 != "" && \$15 != "" && \$16 != "" { print \$0 }' \
+	awk -F '\t' -v OFS='\t' ' \$11 != "NA" \
+	{ print \$1 "	" \$2 "	" \$3 "	" \$4 "	" \$5 "	" \$6 "	" \$7 "	" \$8 "	" \$9 "	" \$10 "	" \$11 "	" \$16}' \
 	> ${folder}/geneLists/${base}_noBlanks.txt
 EOF
 	sbatch ${folder}/PBS/${base}_pileup'.pbs'

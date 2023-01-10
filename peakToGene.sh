@@ -43,35 +43,54 @@ while IFS=$'\t' read -r -a varArray; do
 library(tidyverse)
 library(dplyr)
 library(janitor)
+library(biomaRt)
 
 getwd()
 
 genes <- read.csv("${geneTable}", header = TRUE) 
 glimpse(genes)
 
-peaks <- as.list(read.table("${peakTable}", sep = "\t", header = TRUE, fill = TRUE) %>% clean_names())
-glimpse(peaks)
+# Remove ' as a quote because of 5' and 3' annotations
+peaks <- read.table("${peakTable}", sep = "\t", header = TRUE, quote = "", fill = TRUE) %>% clean_names()
 
-peakNames <- unique(peaks\$"gene_name")
+mRNA <- peaks[str_sub(peaks\$"nearest_promoter_id", 2, 2)  == "M", ]
 
-longNames <- peakNames
+matchedGenes <- genes[genes\$"gene" %in% mRNA\$"gene_name", ]
+matchedPeaks <- mRNA[mRNA\$"gene_name" %in% genes\$"gene", ]
 
-altNames <- unique(peaks\$"gene_alias")
-for (gList in altNames) {
-	longNames <- append(longNames, str_split(gList, pattern = "|"))
-}
+print(nrow(matchedGenes))
+print(nrow(matchedPeaks))
 
-longNames <- unique(longNames)
+geneNames <- genes\$gene
 
-print(peakNames[1:50])
-df <- genes[ genes\$"gene" %in% peakNames, ]
-df2 <- genes[ genes\$"gene" %in% longNames, ]
+write.csv(merge(x = matchedPeaks, y = matchedGenes, by.x = "gene_name", by.y = "gene"), "./linkedGenes/${name}_linkedPeakGenes.csv")
 
-print(paste0("There are ", (length(longNames) - length(peakNames)), " more items after adding alternative gene names."))
-print(paste0("There are ", (nrow(df2) - nrow(df)), " more rows after adding alternative gene names."))
+print(paste0("There are ", nrow(peaks), " peaks. Of which, ", 
+	nrow(mRNA), " are linked to " , length(unique(mRNA\$"gene_name")) ," protein-coding genes. ", 
+	(nrow(peaks) - nrow(mRNA)), " had no gene symbol attached to their name and were therefore tossed out."))
 
-write.csv(df, "./linkedGenes/${name}_linkedPeakGenes.csv")
-write.csv(df2, "./linkedGenes/${name}_linkedPeakGenes_long.csv")
+# df <- peaks[ peaks\$"gene_name" %in% geneNames, ]
+
+# peakNames <- unique(peaks\$"gene_name")
+
+# longNames <- peakNames
+
+# altNames <- unique(peaks\$"gene_alias")
+# for (gList in altNames) {
+# 	longNames <- append(longNames, str_split(gList, pattern = "|"))
+# }
+
+# longNames <- unique(longNames)
+
+# print(peakNames[1:50])
+# df <- genes[ genes\$"gene" %in% peakNames, ]
+# df2 <- genes[ genes\$"gene" %in% longNames, ]
+
+# print(paste0("There are ", (length(longNames) - length(peakNames)), " more items after adding alternative gene names."))
+# print(paste0("There are ", (nrow(df2) - nrow(df)), " more rows after adding alternative gene names."))
+
+# write.csv(df, "./linkedGenes/${name}_linkedPeakGenes.csv")
+# write.csv(df2, "./linkedGenes/${name}_linkedPeakGenes_long.csv")
 EOF
 
 	cat >${folder}/PBS/${name}_linker.pbs <<EOF
