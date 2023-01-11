@@ -88,7 +88,7 @@ if ((\$currLine == $count)); then
     source activate base
     if [[ $suffix1 == "_R1.shifted.nsorted.bam" ]]; then
         cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/mergeATACpeaks.sh ${folder}
-        sh mergePeakCalling.sh
+        sh mergeATACpeaks.sh
     elif [[ $suffix1 == "_R1.sorted.filtered.bam" ]]; then
         cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/mergePeakCalling.sh ${folder}
         sh mergePeakCalling.sh

@@ -120,7 +120,7 @@ cat >${folder}/twoFactorComparison/${treatment}_over_${control}_deseq/${treatmen
   dev.off()
 
 
-  contrast_kd <-  c("sampletype", "${treatment}","${control}")
+  contrast_kd <-  c("sampletype", "${control}","${treatment}")
   res_tableKD_unshrunken <- results(dds, contrast=contrast_kd, alpha = 0.05)
   res_tableKD <- lfcShrink(dds, contrast=contrast_kd, res=res_tableKD_unshrunken,type = "normal")
   plotMA(res_tableKD_unshrunken, ylim=c(-2,2))
