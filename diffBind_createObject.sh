@@ -8,6 +8,7 @@
 # Requires the ATACQC because apparently that's where DiffBind is
 # TODO: create separate DiffBind environment?
 
+mkdir -p diffBind
 mkdir -p PBS
 mkdir -p log
 
@@ -40,6 +41,14 @@ dbObj <- dba(sampleSheet=samples)
 dbObj <- dba.count(dbObj, bUseSummarizeOverlaps=TRUE, bParallel=FALSE)  # Does not run in parallel due to file size
 
 saveRDS(dbObj, file = "$NAME.rds")
+
+pdf("diffBind/multiCorr.pdf")
+  plot(dbObj)
+dev.off()
+
+pdf("diffBind/pca.pdf")
+  dba.plotPCA(dbObj,DBA_FACTOR,label=DBA_ID)
+dev.off()
 EOF
 
 # Create slurm file to run said R script
