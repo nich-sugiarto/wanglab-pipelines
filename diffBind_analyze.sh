@@ -63,8 +63,8 @@ dev.off()
 
 res_deseq <- dba.report(dbObj, method=DBA_ALL_METHODS, contrast = 1, th=1)
 res_deseq
-out <- as.data.frame(res_deseq) %>%
-  filter(FDR < 0.05)
+
+out <- as.data.frame(res_deseq) 
 write.table(out, file="${subfolder}/${samp}over${control}.txt", sep="\t", quote=F, row.names=F)
 
 unchanged <- as.data.frame(res_deseq) %>%

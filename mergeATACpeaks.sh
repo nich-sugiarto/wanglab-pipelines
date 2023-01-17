@@ -119,10 +119,11 @@ echo "${base} completed!" >> ${folder}/'pcMeta.txt'
 currLine=\$(wc -l < ${folder}/pcMeta.txt)
 if ((\$currLine == $count)); then
     source activate base
-    cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/homerMotif.sh ${folder}
-    sh homerMotif.sh mergedBed
-    cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/ChIPseeker.sh ${folder}
-    sh ChIPseeker.sh mergedBed
+    ### Next 4 lines commented out by ADCM 1/17/23. No need to run Homer of ChIPseeker on standard ATAC
+    # cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/homerMotif.sh ${folder}
+    # sh homerMotif.sh mergedBed
+    # cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/ChIPseeker.sh ${folder}
+    # sh ChIPseeker.sh mergedBed
     rm ${folder}/pcMeta.txt
 fi
 EOF
