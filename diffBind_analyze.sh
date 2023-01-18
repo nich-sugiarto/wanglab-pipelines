@@ -48,7 +48,7 @@ cat >${folder}/PBS/${samp}over${control}'.R' <<EOF
 library(DiffBind)
 library(dplyr)
 
-dbObj <- readRDS("${dbObj}")
+dbObj <- readRDS("./${dbObj}")
 
 dbObj <- dba.contrast(dbObj, contrast=c("${compare}","${samp}","${control}"), design = "~${compare} + Replicate", minMembers = 2)
 dbObj <- dba.analyze(dbObj, method=DBA_ALL_METHODS)
