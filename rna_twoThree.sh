@@ -11,6 +11,10 @@
 # controlGroup	sampleGroup	repDelimiter
 # Where the rep delimiter is how reps are distinguised (e.g. R1,R2,R3 vs Rep1,Rep2,Rep3)
 
+echo WARNING:
+echo I modified some things recently, and I have no idea if they work.
+echo "If you don't see MA plots or volcano plots, please let Nick know"
+
 # Setup - Generate required folders
 mkdir -p PBS
 mkdir -p log
@@ -106,8 +110,8 @@ cat >${folder}/twoFactorComparison/${treatment}_over_${control}_deseq/${treatmen
     stopifnot(!missing(x))
     stopifnot(!missing(filename))
     pdf(filename, width=width, height=height)
-    grid::grid.newpage()
-    grid::grid.draw(x\$gtable)
+      grid::grid.newpage()
+      grid::grid.draw(x\$gtable)
     dev.off()
   }
   save_pheatmap_pdf(xx, "${treatment}_${control}_Hierarchical_Clustering.pdf")
@@ -179,6 +183,7 @@ cat >${folder}/twoFactorComparison/${treatment}_over_${control}_deseq/${treatmen
     dplyr::filter(padj < padj.cutoff & abs(log2FoldChange) > 1  & log2FoldChange < 0)
   write.table(down2,file="${treatment}_${control}_fc2_down.csv",row.names = FALSE,quote = FALSE,sep = ",")
 
+  write.table(res_tableKD,file="${control}_${treatment}_all.csv",row.names = FALSE,quote = FALSE,sep = ",")
 
 meta <- meta %>%
 rownames_to_column(var="samplename") %>%
@@ -215,21 +220,22 @@ write.table(norm_sig,file="${treatment}_${control}_fc1.5_heatmap.csv",row.names 
          
 
 norm_fc2 <- normalized_counts %>%
-dplyr::filter(gene %in% lfc2\$gene) %>%
-data.frame() %>%
-column_to_rownames(var = "gene")
+  dplyr::filter(gene %in% lfc2\$gene) %>%
+  data.frame() %>%
+  column_to_rownames(var = "gene")
 
 
 xx <- pheatmap(norm_fc2,
-cluster_rows = T,
-show_rownames = F,
-annotation = annotation,
-border_color = NA,
-fontsize = 5,
-scale = "row",
-fontsize_row = 5,
-fontsize_col = 5,
-cellwidth = 10)
+  cluster_rows = T,
+  show_rownames = F,
+  annotation = annotation,
+  border_color = NA,
+  fontsize = 5,
+  scale = "row",
+  fontsize_row = 5,
+  fontsize_col = 5,
+  cellwidth = 10)
+
 save_pheatmap_pdf(xx, "${treatment}_${control}_fc2_Heatmap.pdf")
 write.table(norm_fc2,file="${treatment}_${control}_fc2_heatmap.csv",row.names = TRUE,quote = FALSE,sep = ",")
 
@@ -237,7 +243,7 @@ write.table(norm_fc2,file="${treatment}_${control}_fc2_heatmap.csv",row.names = 
 top50_sig_genes <- res_tableKD_tb %>%
   arrange(padj) %>%     #Arrange rows by padj values
   pull(gene) %>%         #Extract character vector of ordered genes
-  head(n=50)         #Extract the first 20 genes
+  head(n=50)         #Extract the first 50 genes
 
 top50_sig_norm <- normalized_counts %>%
   dplyr::filter(gene %in% top50_sig_genes) %>%
@@ -260,35 +266,89 @@ xx <- pheatmap(top50_sig_norm,
 
 save_pheatmap_pdf(xx, "${treatment}_${control}_Top50siggene.pdf")
 
+res_tableKD_tb <- res_tableKD_tb %>% 
+	mutate( threshold_KD = case_when(log2FoldChange >= 1.5 & padj <= 0.05 ~ "Upregulated",
+	log2FoldChange <= -1.5 & padj <= 0.05 ~ "Downregulated",
+	TRUE ~ "Unchanged"))
+  
+
+  top <- 25
+  top_genes_p <- bind_rows(
+    res_tableKD_tb %>% 
+      filter(threshold_KD == 'Upregulated') %>% 
+      arrange(padj, desc(abs(log2FoldChange))) %>% 
+      head(top),
+    gTable %>% 
+      filter(threshold_KD == 'Downregulated') %>% 
+      arrange(padj, desc(abs(log2FoldChange))) %>% 
+      head(top)
+  )
+
+  ggplot(res_tableKD_tb) +
+    geom_point(aes(x = log2FoldChange, y = -log10(padj), colour = threshold_KD)) +
+    ggtitle("${treatment}_${control}") +
+    xlab(expression("log"[2]*"FC")) +  
+		ylab(expression("-log"[10]*"pAdj")) +
+		scale_color_manual(values = c("dodgerblue3", "gray50", "firebrick3")) +
+    theme_bw + 
+    theme(legend.position = "none",
+          plot.title = element_text(size = rel(1.5), hjust = 0.5),
+          axis.title = element_text(size = rel(1.25))) +
+  	geom_label_repel(data = top_genes_p,
+  	mapping = aes(log2FoldChange, -log10(padj), 
+  	label = gene), min.segment.length = 0.0000001, size = 2)
 
 
+  ggsave("${treatment}_${control}_fc1.5_VolcanoPlot.png",dpi=300) 
+  
+res_tableKD_tb <- res_tableKD_tb %>% 
+	mutate( threshold_KD = case_when(log2FoldChange >= 2 & padj <= 0.05 ~ "Upregulated",
+	log2FoldChange <= -2 & padj <= 0.05 ~ "Downregulated",
+	TRUE ~ "Unchanged"))
 
-
-  res_tableKD_tb <- res_tableKD_tb %>% mutate(threshold_KD = padj < 0.05 & abs(log2FoldChange) >= 0.58)
+  top_genes_p <- bind_rows(
+    res_tableKD_tb %>% 
+      filter(threshold_KD == 'Upregulated') %>% 
+      arrange(padj, desc(abs(log2FoldChange))) %>% 
+      head(top),
+    gTable %>% 
+      filter(threshold_KD == 'Downregulated') %>% 
+      arrange(padj, desc(abs(log2FoldChange))) %>% 
+      head(top)
+  )
   
   ggplot(res_tableKD_tb) +
     geom_point(aes(x = log2FoldChange, y = -log10(padj), colour = threshold_KD)) +
     ggtitle("${treatment}_${control}") +
-    xlab("log2 fold change") +
-    ylab("-log10 adjusted p-value") +
-    #scale_y_continuous(limits = c(0,50)) +
+    xlab(expression("log"[2]*"FC")) +  
+		ylab(expression("-log"[10]*"pAdj")) +
+		scale_color_manual(values = c("dodgerblue3", "gray50", "firebrick3")) +
+    theme_bw + 
     theme(legend.position = "none",
           plot.title = element_text(size = rel(1.5), hjust = 0.5),
           axis.title = element_text(size = rel(1.25)))
-  ggsave("${treatment}_${control}_fc1.5_VolcanoPlot.png",dpi=300)
-  
-  res_tableKD_tb <- res_tableKD_tb %>% mutate(threshold_KD = padj < 0.05 & abs(log2FoldChange) >= 1)
-  
-  ggplot(res_tableKD_tb) +
-    geom_point(aes(x = log2FoldChange, y = -log10(padj), colour = threshold_KD)) +
-    ggtitle("${treatment}_${control}") +
-    xlab("log2 fold change") +
-    ylab("-log10 adjusted p-value") +
-    #scale_y_continuous(limits = c(0,50)) +
-    theme(legend.position = "none",
-          plot.title = element_text(size = rel(1.5), hjust = 0.5),
-          axis.title = element_text(size = rel(1.25)))
+    geom_label_repel(data = top_genes_p,
+  	mapping = aes(log2FoldChange, -log10(padj), 
+  	label = gene), min.segment.length = 0.0000001, size = 2)
+
   ggsave("${treatment}_${control}_fc2_VolcanoPlot.png",dpi=300)
+
+  p2 <- ggplot(gTable, aes(log2(baseMean), log2FoldChange)) +
+		geom_point(aes(color = threshold_KD), size = 2/5) +
+		xlab(expression("log"[2]*"baseMean")) +  
+		ylab(expression("log"[2]*"foldChange")) +
+		scale_color_manual(values = c("dodgerblue3", "gray50", "firebrick3")) +
+		theme_bw() + theme(legend.position = "none")
+    print(p2)
+
+  ggsave("pVolcanos/${treatment}_${control}_MA.pdf")
+  
+  p3 <-  p2 +
+  	geom_label_repel(data = top_genes_p,
+  	mapping = aes(log2(baseMean), log2FoldChange, 
+  	label = gene), min.segment.length = 0.0000001, size = 2)
+  print(p3)
+  ggsave("pVolcanos/${treatment}_${control}_MA_t50.pdf")
 EOF
 
 cat >${folder}/PBS/${treatment}_over_${control}'.pbs' <<EOF

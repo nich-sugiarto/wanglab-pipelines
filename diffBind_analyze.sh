@@ -73,6 +73,15 @@ unchanged <- as.data.frame(res_deseq) %>%
 
 write.table(unchanged, file="${subfolder}/unchanged_long.bed", sep="\t", quote=F, row.names=F)
 
+allDB <- out %>% 
+  filter((Fold < 0 & FDR < 0.05) | (Fold > 0 & FDR < 0.05)) %>%
+  select(seqnames, start, end, Fold, p.value, FDR)
+
+allDBbed <- allDB %>% select(seqnames, start, end)
+
+write.table(allDBbed, file="${subfolder}/allDB.bed", sep="\t", quote=F, row.names=F, col.names=F)
+write.table(allDB, file="${subfolder}/allDB.txt", sep="\t", quote=F, row.names=F, col.names=F)
+
 KO_enrich <- out %>% 
   filter(Fold < 0 & FDR < 0.05) %>% 
   select(seqnames, start, end)

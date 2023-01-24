@@ -21,12 +21,94 @@ if [ -z "$1" ]; then
   echo categoryForComparison sampleGroup controlGroup  rObjToRead
 fi
 
+folder=$(cd "$(dirname "$0")";pwd)
+
 libraryText=$1  # Passed in file name
+
+mkdir -p PBS
+mkdir -p log
+mkdir -p linkedGenes
 
 OLDIFS=$IFS
 while IFS=$'\t' read -r -a varArray; do
 	location=${varArray[0]}  # Category
 	IFS=$OLDIFS
+  mkdir -p geneLists/diffBind/${location}
 
-  
+  cat >${folder}/PBS/${location}_linker'.R' <<EOF
+library(tidyverse)
+library(dplyr)
+library(janitor)
+
+getwd()
+
+# Remove ' as a quote because of 5' and 3' annotations
+peaks <- read.table("geneLists/diffBind/${location}/${location}_noBlanks.txt", sep = "\t", header = TRUE, quote = "", fill = TRUE) %>% clean_names()
+mRNA <- peaks[str_sub(peaks\$"nearest_promoter_id", 2, 2)  == "M", ]
+colnames(mRNA)[1] <- "peakID"
+
+dbVal <- read.table("${folder}/diffBind/${location}/allDB.txt", sep = "\t", header = FALSE) %>% clean_names()
+colnames(dbVal) <- c("seqnames", "start", "end", "Fold", "p.value", "FDR")
+
+str(dbVal)
+str(mRNA)
+
+mRNA_fin <- mRNA[,-1]
+rownames(mRNA_fin) <- mRNA[,1]
+
+finDf <- merge(mRNA_fin, dbVal, by='row.names')
+str(finDf)
+write.csv(finDf, "./linkedGenes/${location}_linkedPeakGenes.csv")
+
+diffList <- finDf %>%
+  select(gene_name, Fold, p.value, FDR)
+
+diffList <- diffList[!diffList\$"gene_name" == "",]
+write.csv(diffList, "./linkedGenes/${location}_foldTables.csv")
+
+
+# write.csv(merge(x = mRNA, y = dbVal, by.x = c("seqnames", "start", "end"), by.y = c("chr", "start", "end")), "./linkedGenes/${location}_linkedPeakGenes.csv")
+
+# matchedGenes <- genes[genes\$"gene" %in% mRNA\$"gene_name", ]
+# matchedPeaks <- mRNA[mRNA\$"gene_name" %in% genes\$"gene", ]
+
+# print(nrow(matchedGenes))
+# print(nrow(matchedPeaks))
+
+# geneNames <- genes\$gene
+
+# write.csv(merge(x = matchedPeaks, y = matchedGenes, by.x = "gene_name", by.y = "gene"), "./linkedGenes/${name}_linkedPeakGenes.csv")
+
+# print(paste0("There are ", nrow(peaks), " peaks. Of which, ", 
+# 	nrow(mRNA), " are linked to " , length(unique(mRNA\$"gene_name")) ," protein-coding genes. ", 
+# 	(nrow(peaks) - nrow(mRNA)), " had no gene symbol attached to their name and were therefore tossed out."))
+EOF
+
+	cat >${folder}/PBS/${location}_diffBindPileup'.pbs' <<EOF
+#!/bin/bash
+#SBATCH --job-name=${location}_annoPeaks
+#SBATCH --nodes=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=16G
+#SBATCH --time=16:00:00
+#SBATCH -o ${folder}/log/${location}_diffBindPileup_%j.txt -e ${folder}/log/${location}_diffBindPileup_%j.err.txt
+cd ${folder}
+################################
+# Enter your code to run below #
+################################
+source /dartfs-hpc/rc/lab/W/WangX/sharedconda/miniconda/etc/profile.d/conda.sh
+source activate ChIPseeker
+
+# annotatePeaks.pl ${folder}/diffBind/${location}/allDB.bed hg38 > ${folder}/geneLists/diffBind/${location}/dbRegions_annotated.txt
+
+# cat ${folder}/geneLists/diffBind/${location}/dbRegions_annotated.txt | \
+# 	awk -F '\t' -v OFS='\t' ' \$11 != "NA" \
+# 	{ print \$1 "	" \$2 "	" \$3 "	" \$4 "	" \$5 "	" \$6 "	" \$7 "	" \$8 "	" \$9 "	" \$10 "	" \$11 "	" \$16}' \
+# 	> ${folder}/geneLists/diffBind/${location}/${location}_noBlanks.txt
+
+Rscript ${folder}/PBS/${location}_linker'.R'
+EOF
+
+  sbatch ${folder}/PBS/${location}_diffBindPileup'.pbs'
 done < ${libraryText}

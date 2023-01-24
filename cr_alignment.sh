@@ -34,7 +34,7 @@ if (($count == 0)); then
 
 	if [[ "$resp" == "y" ]]; then
 		echo Expanding out...
-		cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/ChIPseeker.sh ./
+		cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/move.sh ./
 		sh move.sh
 		echo Done. Proceeding as normal...
 		rm move.sh

@@ -31,6 +31,7 @@ library(annotables)
 library(org.Hs.eg.db)
 library(DOSE)
 library(dplyr)
+library(R.utils)
 
 samplefiles <- list.files("$folder/$1/", pattern= "${base}.bed", full.names=T)
 samplefiles <- as.list(samplefiles)
@@ -92,6 +93,8 @@ pdf(file = "$folder/ChIPseeker/${base}/${base}_GO.pdf")
 dotplot(ego,showCategory = 20,font.size=6)
 dev.off()
 
+# DOESN'T WORK
+R.utils::setOption("clusterProfiler.download.method","wget")
 ekegg <- enrichKEGG(gene = entrezids,
                     organism = 'hsa',
                     pvalueCutoff = 0.05)
