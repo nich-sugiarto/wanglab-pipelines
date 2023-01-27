@@ -40,8 +40,6 @@ library(dplyr)
 library(janitor)
 library(biomaRt)
 
-getwd()
-
 genes <- read.csv("${csv}", header = TRUE) 
 
 stem <- c("LEFTY1", "LGR5", "RGMB", "ASCL2", "SMOC2", "OLFM4")
@@ -63,8 +61,6 @@ ta2 <- c("LEFTY1", "GOLM1", "LCN2", "APRT", "MLEC", "C1QBP")
 overallList <- list(stem, enterocyte, goblet, tuft, enteroendocrine, best4, cTA, enterocytes_progen, 
 	im_enterocytes1, im_enterocytes2, im_goblet, m, sec_ta, ta1, ta2)
 
-print(overallList)
-
 names(overallList) <- c("Stem cells", "Enterocytes", "Goblet cells", "Tuft cells", 
 	"Entereoendocrine cells", "Best4+ Enterocytes", "Cycling TA cells", "Enterocyte progenitors", 
 	"Immature Enterocytes 1", "Immature Enterocytes 2", "Immature goblet cells", "M cells", 
@@ -73,12 +69,9 @@ names(overallList) <- c("Stem cells", "Enterocytes", "Goblet cells", "Tuft cells
 for (i in 1:length(overallList)) {
 	print(overallList)
 	marks <- overallList[[i]]
-	print(marks)
 	name <- names(overallList)[i]
-	print(name)
 
 	fMarks <- genes[genes\$gene %in% marks, ] %>% arrange(desc(log2FoldChange))
-	str(fMarks)
 	bLvls <- unique(as.list(fMarks\$gene))
 
 	ggplot(data=fMarks, aes(x=factor(gene, level = bLvls), y = log2FoldChange, fill = -log10(padj))) + 
