@@ -11,13 +11,6 @@
 
 # FIXME: Create new, more detailed spreadsheet instead.
 
-folder=$(cd "$(dirname "$0")";pwd)  # Save current folder as a variable
-
-# Setup - generate required folders
-mkdir -p PBS
-mkdir -p log
-mkdir -p linkedGenes
-
 # Error message if the files aren't provideds
 if [ -z "$1" ]; then 
   echo ERROR: META FILE WAS NOT SPECIFIED
@@ -26,6 +19,11 @@ if [ -z "$1" ]; then
   echo 	\$1 - target meta file containing sample information
   exit 1
 fi
+
+# Setup - generate required folders
+mkdir -p PBS
+mkdir -p log
+mkdir -p linkedGenes
 
 folder=$(cd "$(dirname "$0")";pwd)  # Save location of current folder
 libraryText=$1  # Passed in file name
