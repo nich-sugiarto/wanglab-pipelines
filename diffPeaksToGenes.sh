@@ -68,29 +68,6 @@ write.csv(merge(x = matchedPeaks, y = matchedGenes, by.x = "gene_name", by.y = "
 print(paste0("There are ", nrow(peaks), " peaks. Of which, ", 
 	nrow(mRNA), " are linked to " , length(unique(mRNA\$"gene_name")) ," protein-coding genes. ", 
 	(nrow(peaks) - nrow(mRNA)), " had no gene symbol attached to their name and were therefore tossed out."))
-
-# df <- peaks[ peaks\$"gene_name" %in% geneNames, ]
-
-# peakNames <- unique(peaks\$"gene_name")
-
-# longNames <- peakNames
-
-# altNames <- unique(peaks\$"gene_alias")
-# for (gList in altNames) {
-# 	longNames <- append(longNames, str_split(gList, pattern = "|"))
-# }
-
-# longNames <- unique(longNames)
-
-# print(peakNames[1:50])
-# df <- genes[ genes\$"gene" %in% peakNames, ]
-# df2 <- genes[ genes\$"gene" %in% longNames, ]
-
-# print(paste0("There are ", (length(longNames) - length(peakNames)), " more items after adding alternative gene names."))
-# print(paste0("There are ", (nrow(df2) - nrow(df)), " more rows after adding alternative gene names."))
-
-# write.csv(df, "./linkedGenes/${name}_linkedPeakGenes.csv")
-# write.csv(df2, "./linkedGenes/${name}_linkedPeakGenes_long.csv")
 EOF
 
 	cat >${folder}/PBS/${name}_linker.pbs <<EOF

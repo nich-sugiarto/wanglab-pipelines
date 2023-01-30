@@ -109,6 +109,7 @@ dev.off()
 EOF
 
   cat >${folder}/PBS/${base}_ChIPseeker'.pbs' <<EOF
+  
 #!/bin/bash -l
 # Name of the job
 #SBATCH --job-name=ChIPSeeker # Name of the job
