@@ -127,10 +127,10 @@ Rscript ./PBS/${samp}over${control}'.R'
 tail -n +2 "${subfolder}/unchanged_long.bed" > ${subfolder}/unchanged.bed
 rm ${subfolder}/unchanged_long.bed
 
-# cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/downstreamDiffBind/diffBind_HomerMotif.sh ${folder}
-# sh diffBind_HomerMotif.sh ${subfolder}
-# cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/downstreamDiffBind/diffBind_ChIPseeker.sh ${folder}
-# sh diffBind_ChIPseeker.sh ${subfolder}
+cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/downstreamDiffBind/diffBind_HomerMotif.sh ${folder}
+sh diffBind_HomerMotif.sh ${subfolder}
+cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/downstreamDiffBind/diffBind_ChIPseeker.sh ${folder}
+sh diffBind_ChIPseeker.sh ${subfolder}
 EOF
 
 sbatch ${folder}/PBS/${samp}over${control}.sbatch

@@ -241,9 +241,9 @@ write.table(norm_fc2,file="${treatment}_${control}_fc2_heatmap.csv",row.names = 
 
 
 top50_sig_genes <- res_tableKD_tb %>%
-  arrange(padj) %>%     #Arrange rows by padj values
-  pull(gene) %>%         #Extract character vector of ordered genes
-  head(n=50)         #Extract the first 50 genes
+  arrange(padj) %>%     # Arrange rows by padj values
+  pull(gene) %>%        # Extract character vector of ordered genes
+  head(n=50)            # Extract the first 50 genes
 
 top50_sig_norm <- normalized_counts %>%
   dplyr::filter(gene %in% top50_sig_genes) %>%

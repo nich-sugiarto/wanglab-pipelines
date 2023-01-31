@@ -18,7 +18,7 @@ if [ -z "$1" ]; then
   echo ERROR: NOT ALL PARAMETERS HAVE BEEN SPECIFIED
   echo USAGE:
   echo This pipeline takes in one positional argument:
-  echo $1 - The meta file that has all the comparisons that need to be made
+  echo \$1 - The meta file that has all the comparisons that need to be made
   echo The file should be tab-delimited, and contain the following fields:
   echo categoryForComparison sampleGroup controlGroup  rObjToRead
 fi

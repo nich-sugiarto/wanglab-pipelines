@@ -207,7 +207,7 @@ fontsize_col = 5,
 cellwidth = 10)
 save_pheatmap_pdf(xx, "${control}_${treatment}_fc1.5_Heatmap.pdf")
 write.table(norm_sig,file="${control}_${treatment}_fc1.5_heatmap.csv",row.names = TRUE,quote = FALSE,sep = ",")
-         
+
 
 norm_fc2 <- normalized_counts %>%
   dplyr::filter(gene %in% lfc2\$gene) %>%

@@ -16,7 +16,7 @@ folder=$(cd "$(dirname "$0")";pwd)  # Save current folder as a variable
 # Setup - generate required folders
 mkdir -p PBS
 mkdir -p log
-mkdir -p linkedGenes
+mkdir -p corrPeakGenes/quadrants
 
 # Error message if the files aren't provideds
 if [ -z "$1" ]; then 
@@ -91,7 +91,8 @@ corrPlot <- ggplot(diffCorr, aes(x=fold, y=log2FoldChange)) +
   geom_bin2d(bins = 120) + theme_bw() + 
   geom_smooth(method=lm) +  
   labs(y = "RNA log2fold change", x = "ATAC log2fold change") + 
-  ggtitle(paste("${name} Pearson Correlation:", cor(diffCorr\$fold, diffCorr\$log2FoldChange))) + 
+  ggtitle(label = paste("${name} Pearson Correlation:", cor(diffCorr\$fold, diffCorr\$log2FoldChange)), 
+    subtitle = paste("Spearman Correlation:", cor(diffCorr\$fold, diffCorr\$log2FoldChange, method = "spearman"))) + 
   geom_text(x = -3, y = 3, label = sum(diffCorr\$fold < 0 & diffCorr\$log2FoldChange > 0), colour = "red") + 
   geom_text(x = 3, y = -3, label = sum(diffCorr\$fold > 0 & diffCorr\$log2FoldChange < 0), colour = "red") + 
   geom_text(x = 3, y = 3, label = sum(diffCorr\$fold > 0 & diffCorr\$log2FoldChange > 0), colour = "red") + 

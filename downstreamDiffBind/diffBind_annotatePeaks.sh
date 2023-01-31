@@ -16,9 +16,9 @@ if [ -z "$1" ]; then
   echo ERROR: NOT ALL PARAMETERS HAVE BEEN SPECIFIED
   echo USAGE:
   echo This pipeline takes in one positional argument:
-  echo $1 - The meta file that has all the comparisons that need to be made
+  echo \$1 - The meta file that has all the comparisons that need to be made
   echo The file should be tab-delimited, and contain the following fields:
-  echo categoryForComparison sampleGroup controlGroup  rObjToRead
+  echo Name of DiffBind folder
 fi
 
 folder=$(cd "$(dirname "$0")";pwd)
@@ -65,23 +65,6 @@ diffList <- finDf %>%
 
 diffList <- diffList[!diffList\$"gene_name" == "",]
 write.csv(diffList, "./linkedGenes/${location}_foldTables.csv")
-
-
-# write.csv(merge(x = mRNA, y = dbVal, by.x = c("seqnames", "start", "end"), by.y = c("chr", "start", "end")), "./linkedGenes/${location}_linkedPeakGenes.csv")
-
-# matchedGenes <- genes[genes\$"gene" %in% mRNA\$"gene_name", ]
-# matchedPeaks <- mRNA[mRNA\$"gene_name" %in% genes\$"gene", ]
-
-# print(nrow(matchedGenes))
-# print(nrow(matchedPeaks))
-
-# geneNames <- genes\$gene
-
-# write.csv(merge(x = matchedPeaks, y = matchedGenes, by.x = "gene_name", by.y = "gene"), "./linkedGenes/${name}_linkedPeakGenes.csv")
-
-# print(paste0("There are ", nrow(peaks), " peaks. Of which, ", 
-# 	nrow(mRNA), " are linked to " , length(unique(mRNA\$"gene_name")) ," protein-coding genes. ", 
-# 	(nrow(peaks) - nrow(mRNA)), " had no gene symbol attached to their name and were therefore tossed out."))
 EOF
 
 	cat >${folder}/PBS/${location}_diffBindPileup'.pbs' <<EOF
@@ -100,12 +83,12 @@ cd ${folder}
 source /dartfs-hpc/rc/lab/W/WangX/sharedconda/miniconda/etc/profile.d/conda.sh
 source activate ChIPseeker
 
-# annotatePeaks.pl ${folder}/diffBind/${location}/allDB.bed hg38 > ${folder}/geneLists/diffBind/${location}/dbRegions_annotated.txt
+annotatePeaks.pl ${folder}/diffBind/${location}/allDB.bed hg38 > ${folder}/geneLists/diffBind/${location}/dbRegions_annotated.txt
 
-# cat ${folder}/geneLists/diffBind/${location}/dbRegions_annotated.txt | \
-# 	awk -F '\t' -v OFS='\t' ' \$11 != "NA" \
-# 	{ print \$1 "	" \$2 "	" \$3 "	" \$4 "	" \$5 "	" \$6 "	" \$7 "	" \$8 "	" \$9 "	" \$10 "	" \$11 "	" \$16}' \
-# 	> ${folder}/geneLists/diffBind/${location}/${location}_noBlanks.txt
+cat ${folder}/geneLists/diffBind/${location}/dbRegions_annotated.txt | \
+	awk -F '\t' -v OFS='\t' ' \$11 != "NA" \
+	{ print \$1 "	" \$2 "	" \$3 "	" \$4 "	" \$5 "	" \$6 "	" \$7 "	" \$8 "	" \$9 "	" \$10 "	" \$11 "	" \$16}' \
+	> ${folder}/geneLists/diffBind/${location}/${location}_noBlanks.txt
 
 Rscript ${folder}/PBS/${location}_linker'.R'
 EOF

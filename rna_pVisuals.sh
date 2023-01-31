@@ -40,17 +40,22 @@ library(tidyverse)
 library(ggrepel)
 library(knitr)
 
-gTable <- read.csv("${geneTable}", header = TRUE)
+# Read in and prepare inputs 
+gTable <- read.csv("${geneTable}", header = TRUE)  # Read in gene table
 
-mList <- read.csv("${markGenes}", header = FALSE)
-str(mList)
+mList <- read.csv("${markGenes}", header = FALSE)  # Read in the genes that will be annotated in various visualizations
 
-mList <- mList\$V1
+mList <- mList\$V1  # Turn it into a vector
 
+# Create a column to denote which genes are upregulated, downregulated, or not significantly changed
 gTable <- gTable %>% 
 	mutate( threshold_KD = case_when(log2FoldChange >= 1 & padj <= 0.05 ~ "Upregulated",
 	log2FoldChange <= -1 & padj <= 0.05 ~ "Downregulated",
 	TRUE ~ "Unchanged"))
+
+# Volcano Plots
+## Grab the top 25 upregulated genes, and the top 25 downregulated genes by padj value
+## FIXME: For some reason, it seems like more significant genes are being skipped... something to look into?
 
 top <- 25
 top_genes_p <- bind_rows(
@@ -64,6 +69,7 @@ top_genes_p <- bind_rows(
     head(top)
 )
 
+## Create the volcano plot w/o any labels
 p2 <- ggplot(gTable, aes(log2FoldChange, -log10(padj))) +
 		geom_point(aes(color = threshold_KD), size = 2/5) +
 		xlab(expression("log"[2]*"FC")) +  
@@ -76,6 +82,7 @@ pdf("pVolcanos/${cGene}_volcano.pdf")
 	print(p2)
 dev.off()
 
+## Create the labels for the genes present in the list
 list <- gTable[gTable\$gene %in% mList, ]
 p3 <-  p2 +
 	geom_label_repel(data = list,
@@ -86,6 +93,7 @@ pdf("pVolcanos/${cGene}_${cMark}_volcano.pdf")
 	print(p3)
 dev.off()
 
+## Create the labels for top 50 genes (25 up/down ea.)
 p3 <-  p2 +
 	geom_label_repel(data = top_genes_p,
 	mapping = aes(log2FoldChange, -log10(padj), 
@@ -94,6 +102,8 @@ p3 <-  p2 +
 print(p3)
 ggsave("pVolcanos/${cGene}_volcano_t50.pdf")
 
+# MA Plots
+## Create base graph w/o any labels
 p2 <- ggplot(gTable, aes(log2(baseMean), log2FoldChange)) +
 		geom_point(aes(color = threshold_KD), size = 2/5) +
 		xlab(expression("log"[2]*"baseMean")) +  
@@ -104,6 +114,7 @@ print(p2)
 
 ggsave("pVolcanos/${cGene}_MA.pdf")
 
+## Add labels for the genes present in the provided list
 p3 <-  p2 +
 	geom_label_repel(data = list,
 	mapping = aes(log2(baseMean), log2FoldChange, 
@@ -112,13 +123,76 @@ p3 <-  p2 +
 print(p3)
 ggsave("pVolcanos/${cGene}_${cMark}_MA.pdf")
 
-
+## Add labels for the top 50 genes (25 up/down ea.)
 p3 <-  p2 +
 	geom_label_repel(data = top_genes_p,
 	mapping = aes(log2(baseMean), log2FoldChange, 
 	label = gene), min.segment.length = 0.0000001, size = 2)
 print(p3)
 ggsave("pVolcanos/${cGene}_MA_t50.pdf")
+
+# Heatmaps
+## FIXME: Currently makes a couple pretty big assumptions.
+## The first is that it assumes that the normalized_counts file is named very similarly to the provided .csv
+## Where it's the exact same, but _all.csv is replaced by the appropriate suffix
+
+normCounts <- read.table("${geneTable/#_all.csv/_normalized_counts.txt}", header = TRUE, row.names = 1)
+
+## Get 200 most significant genes by p value
+t200 <- bind_rows(
+  gTable %>% 
+    arrange(padj, desc(abs(log2FoldChange))) %>% 
+    head(200))
+
+## Turn into dataframe of top 200 genes by p value
+hmap <- normCounts %>% 
+	dplyr::filter(row.names(normCounts) %in% t200) %>%
+	data.frame()
+
+annoLbls <- row.names(hmap)
+annoLbls[!(annoLbls %in% mList)] <- ""
+
+topLbls <- row.names(hmap)
+topLbls[!(topLbls %in% top_genes_p\$gene)] <- ""
+
+pheatmap(hmap,
+	cluster_rows = T,
+	cluster_cols = T,
+	show_rownames = T,
+	border_color = NA,
+	fontsize = 5,
+	scale = "row",
+	fontsize_row = 5,
+	fontsize_col = 5,
+	cellwidth = 10, 
+	filename = "pVolcanos/${cGene}_heatmap.pdf")
+
+pheatmap(hmap,
+	cluster_rows = T,
+	cluster_cols = T,
+	show_rownames = T,
+	border_color = NA,
+	fontsize = 5,
+	labels_row = annoLbls,
+	scale = "row",
+	fontsize_row = 5,
+	fontsize_col = 5,
+	cellwidth = 10, 
+	filename = "pVolcanos/${cGene}_${cMark}_heatmap.pdf")
+
+pheatmap(hmap,
+	cluster_rows = T,
+	cluster_cols = T,
+	show_rownames = T,
+	border_color = NA,
+	fontsize = 5,
+	labels_row = topLbls,
+	scale = "row",
+	fontsize_row = 5,
+	fontsize_col = 5,
+	cellwidth = 10, 
+	filename = "pVolcanos/${cGene}_t50_heatmap.pdf")
+
 EOF
 
 	cat >${folder}/PBS/${cGene}_${cMark}'_volcano.PBS' <<EOF
