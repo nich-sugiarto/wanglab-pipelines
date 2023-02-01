@@ -31,6 +31,10 @@ txdb <- TxDb.Hsapiens.UCSC.hg38.knownGene
 
 peakAnnoList <- lapply(samplefiles, annotatePeak, TxDb=txdb, tssRegion=c(-2000, 2000), verbose=FALSE)
 
+sink("$folder/ChIPseeker/${base}/${base}_annotationsummary.txt")
+peakAnnoList
+sink()
+
 annot <- as.data.frame(peakAnnoList[["${base}"]]@anno)
 # Get unique entrez gene Ids
 entrezids <- unique(annot\$geneId)

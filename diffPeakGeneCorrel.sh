@@ -90,7 +90,7 @@ pdf("corrPeakGenes/${name}.pdf")
 corrPlot <- ggplot(diffCorr, aes(x=fold, y=log2FoldChange)) + 
   geom_bin2d(bins = 120) + theme_bw() + 
   geom_smooth(method=lm) +  
-  labs(y = "RNA log2fold change", x = "ATAC log2fold change") + 
+  labs(y = "RNA log2fold change", x = "Peak log2fold change") + 
   ggtitle(label = paste("${name} Pearson Correlation:", cor(diffCorr\$fold, diffCorr\$log2FoldChange)), 
     subtitle = paste("Spearman Correlation:", cor(diffCorr\$fold, diffCorr\$log2FoldChange, method = "spearman"))) + 
   geom_text(x = -3, y = 3, label = sum(diffCorr\$fold < 0 & diffCorr\$log2FoldChange > 0), colour = "red") + 

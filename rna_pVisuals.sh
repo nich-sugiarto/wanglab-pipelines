@@ -39,6 +39,10 @@ library(ggplot2)
 library(tidyverse)
 library(ggrepel)
 library(knitr)
+library(pheatmap)
+library(RColorBrewer)
+
+options(ggrepel.max.overlaps = Inf)
 
 # Read in and prepare inputs 
 gTable <- read.csv("${geneTable}", header = TRUE)  # Read in gene table
@@ -136,7 +140,7 @@ ggsave("pVolcanos/${cGene}_MA_t50.pdf")
 ## The first is that it assumes that the normalized_counts file is named very similarly to the provided .csv
 ## Where it's the exact same, but _all.csv is replaced by the appropriate suffix
 
-normCounts <- read.table("${geneTable/#_all.csv/_normalized_counts.txt}", header = TRUE, row.names = 1)
+normCounts <- read.table("${geneTable/_all.csv/_normalized_counts.txt}", header = TRUE, row.names = 1)
 
 ## Get 200 most significant genes by p value
 t200 <- bind_rows(
@@ -146,7 +150,7 @@ t200 <- bind_rows(
 
 ## Turn into dataframe of top 200 genes by p value
 hmap <- normCounts %>% 
-	dplyr::filter(row.names(normCounts) %in% t200) %>%
+	dplyr::filter(row.names(normCounts) %in% t200\$gene) %>%
 	data.frame()
 
 annoLbls <- row.names(hmap)
@@ -158,9 +162,11 @@ topLbls[!(topLbls %in% top_genes_p\$gene)] <- ""
 pheatmap(hmap,
 	cluster_rows = T,
 	cluster_cols = T,
+	colorRampPalette(rev(brewer.pal(n = 7, name =
+  		"RdBu")))(100),
 	show_rownames = T,
-	border_color = NA,
-	fontsize = 5,
+	border_color = "white",
+	fontsize = 4,
 	scale = "row",
 	fontsize_row = 5,
 	fontsize_col = 5,
@@ -170,9 +176,11 @@ pheatmap(hmap,
 pheatmap(hmap,
 	cluster_rows = T,
 	cluster_cols = T,
+	colorRampPalette(rev(brewer.pal(n = 7, name =
+  		"RdBu")))(100),
 	show_rownames = T,
-	border_color = NA,
-	fontsize = 5,
+	border_color = "white",
+	fontsize = 4,
 	labels_row = annoLbls,
 	scale = "row",
 	fontsize_row = 5,
@@ -183,9 +191,11 @@ pheatmap(hmap,
 pheatmap(hmap,
 	cluster_rows = T,
 	cluster_cols = T,
+	colorRampPalette(rev(brewer.pal(n = 7, name =
+  		"RdBu")))(100),
 	show_rownames = T,
-	border_color = NA,
-	fontsize = 5,
+	border_color = "white",
+	fontsize = 4,
 	labels_row = topLbls,
 	scale = "row",
 	fontsize_row = 5,
@@ -200,8 +210,8 @@ EOF
 #SBATCH --job-name=${cGene}_${cMark}_volcano
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=8
-#SBATCH --mem=16G
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=2G
 #SBATCH --time=7:00:00
 #SBATCH -o ${folder}/log/${cGene}_${cMark}_volcano_%j.txt -e ${folder}/log/${cGene}_${cMark}_volcano_%j.err.txt
 cd ${folder}
