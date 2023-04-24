@@ -20,7 +20,7 @@ mkdir -p PBS
 mkdir -p log
 mkdir -p twoFactorComparison
 
-folder=$(cd "$(dirname "$0")";pwd)  # Save current folder location
+folder=$(pwd)  # Save current folder location
 if [ -z "$1" ]; then 
   echo ERROR: TARGET FOLDER WAS NOT SPECIFIED
   echo USAGE:

@@ -38,7 +38,7 @@ mkdir -p log
 mkdir -p mergedBed
 mkdir -p mergedHeatmaps
 
-folder=$(cd "$(dirname "$0")";pwd)
+folder=$(pwd)
 
 count=$(find ./mergedBam -mindepth 1 -type f -name "*_sortedMerged.bam" -printf x | wc -c)  # Finds total number of files matching extension.
 

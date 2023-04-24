@@ -12,7 +12,7 @@
 
 suffix1=_R1_001.fastq.gz
 
-folder=$(cd "$(dirname "$0")";pwd)  # Save current folder as a variable
+folder=$(pwd)  # Save current folder as a variable
 
 # Set up - Create required folder
 mkdir -p PBS

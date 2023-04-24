@@ -4,7 +4,7 @@
 # Peaks identified as differential from the Ctrl at any timepoint are included in these peak sets
 
 suffix1=Ctrl_UT #This includes KOs in merged sets
-folder=$(cd "$(dirname "$0")";pwd)
+folder=$(pwd)
 
 
 # Set up necessary files

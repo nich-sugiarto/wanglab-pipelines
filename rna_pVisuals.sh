@@ -33,7 +33,7 @@ while IFS=$'\t' read -r -a varArray; do
 	cGene=$(basename "${geneTable}" "_all.csv")
 	cMark=$(basename "${markGenes}" ".csv")
 
-	folder=$(cd "$(dirname "$0")";pwd)  # Save current folder as a variable
+	folder=$(pwd)  # Save current folder as a variable
 	cat >${folder}/PBS/${cGene}_${cMark}'_volcano.R' <<EOF
 
 library(ggplot2)

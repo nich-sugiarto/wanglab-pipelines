@@ -6,7 +6,7 @@ if [ -z "$1" ]; then
   exit 1
 fi
 
-folder=$(cd "$(dirname "$0")";pwd)
+folder=$(pwd)
 
 for file in $1/*.bed; do
   base=$(basename "$file" ".bed")

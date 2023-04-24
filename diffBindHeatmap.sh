@@ -2,7 +2,7 @@
 
 # This pipeline requires 1 positional arguments:
 # 	$1 - The Factor (ARID1A, ARID1B, etc.)
-folder=$(cd "$(dirname "$0")";pwd)
+folder=$(pwd)
 mkdir -p diffBind_Heatmaps/Clusters
 factor=$1
 if [ -z "$1" ]; then 

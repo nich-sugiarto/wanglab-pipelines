@@ -24,7 +24,7 @@ fi
 
 # conda activate alignment
 
-folder=$(cd "$(dirname "$0")";pwd)
+folder=$(pwd)
 libraryText=$1
 
 OLDIFS=$IFS

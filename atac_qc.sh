@@ -11,7 +11,7 @@
 # TODO: Attempt to sample multiple chromosomes
 # TODO: Add multicorr plot
 
-folder=$(cd "$(dirname "$0")";pwd)
+folder=$(pwd)
 
 mkdir -p ATACqc
 mkdir -p PBS

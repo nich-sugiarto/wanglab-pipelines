@@ -25,7 +25,7 @@ mkdir -p PBS
 mkdir -p log
 mkdir -p linkedGenes
 
-folder=$(cd "$(dirname "$0")";pwd)  # Save location of current folder
+folder=$(pwd)  # Save location of current folder
 libraryText=$1  # Passed in file name
 
 OLDIFS=$IFS

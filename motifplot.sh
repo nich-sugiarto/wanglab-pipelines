@@ -12,7 +12,7 @@ mkdir -p goPlots
 mkdir -p PBS
 mkdir -p log
 
-folder=$(cd "$(dirname "$0")";pwd)  # Save current folder as a variable
+folder=$(pwd)  # Save current folder as a variable
 
 libraryText=$1
 

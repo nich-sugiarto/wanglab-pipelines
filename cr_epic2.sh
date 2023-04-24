@@ -57,7 +57,7 @@ mkdir -p log
 mkdir -p epic2
 mkdir -p heatmaps
 
-folder=$(cd "$(dirname "$0")";pwd)
+folder=$(pwd)
 
 count=$(find ./aligned -mindepth 1 -type f -name "*${suffix}" -printf x | wc -c)  # Finds total number of files matching extension. CHANGE FOR FILE EXTENSION
 groupCount=$(find ./aligned -mindepth 1 -type f -name "*IgG*${suffix}" -printf x | wc -c)  # Finds total number of control (IgG) files. CHANGE FOR FILE EXTENSION
@@ -144,10 +144,8 @@ currLine=\$(wc -l < ${folder}/meta.txt)
 if ((\$currLine == $count)); then
     source activate base
     if $downstream; then
-      cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/homerMotif.sh ${folder}
-      sh homerMotif.sh epic2
-      cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/ChIPseeker.sh ${folder}
-      sh ChIPseeker.sh epic2
+      sh /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/homerMotif.sh epic2
+      sh /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/ChIPseeker.sh epic2
     fi
     rm ${folder}/meta.txt
 fi

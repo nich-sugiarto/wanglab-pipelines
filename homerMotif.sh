@@ -12,7 +12,7 @@
 mkdir -p PBS
 mkdir -p log
 
-folder=$(cd "$(dirname "$0")";pwd)
+folder=$(pwd)
 
 # If a name is not provided
 if [ -z "$1" ]; then 

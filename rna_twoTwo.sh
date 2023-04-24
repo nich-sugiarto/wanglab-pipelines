@@ -18,7 +18,7 @@ echo WARNING:
 echo I modified some things recently, and I have no idea if they work.
 echo "If you don't see MA plots or volcano plots, please let Nick know"
 
-folder=$(cd "$(dirname "$0")";pwd)  # Save current folder location
+folder=$(pwd)  # Save current folder location
 
 if [ -z "$1" ]; then 
   echo ERROR: TARGET FOLDER WAS NOT SPECIFIED

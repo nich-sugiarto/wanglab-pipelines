@@ -18,7 +18,7 @@ if [ -z "$1" ]; then
   exit 1
 fi
 
-folder=$(cd "$(dirname "$0")";pwd)  # Save current folder as a variable
+folder=$(pwd)  # Save current folder as a variable
 
 
 # Setup - generate required folders

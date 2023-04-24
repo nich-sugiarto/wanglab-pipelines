@@ -9,7 +9,7 @@ mkdir -p log
 mkdir -p mergedBam
 mkdir -p mergedBigWig
 
-folder=$(cd "$(dirname "$0")";pwd)  # Saves folder as a variable
+folder=$(pwd)  # Saves folder as a variable
 
 suffix1=_R1.shifted.nsorted.bam
 CR_sfx=_R1.sorted.filtered.bam
@@ -88,11 +88,9 @@ currLine=\$(wc -l < ${folder}/mergeMeta.txt)
 if ((\$currLine == $count)); then
     source activate base
     if [[ $suffix1 == "_R1.shifted.nsorted.bam" ]]; then
-        cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/mergeATACpeaks.sh ${folder}
-        sh mergeATACpeaks.sh
+        sh /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/mergeATACpeaks.sh
     elif [[ $suffix1 == "_R1.sorted.filtered.bam" ]]; then
-        cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/mergePeakCalling.sh ${folder}
-        sh mergePeakCalling.sh
+        sh /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/mergePeakCalling.sh
     else
         echo "Something went horribly wrong"
     fi

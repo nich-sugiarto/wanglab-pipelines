@@ -28,10 +28,9 @@ else
     exit 1
 fi
 
-
 suffix1=_R1_001.fastq.gz
 
-folder=$(cd "$(dirname "$0")";pwd)  # Saves folder as a variable
+folder=$(pwd)  # Saves folder as a variable
 
 count=$(find ./fastq -mindepth 1 -type f -name "*${suffix1}" -printf x | wc -c)  # Finds total number of files matching extension.
 echo $count files found!
@@ -174,13 +173,11 @@ if ((\$currLine == $count)); then
     source activate base
     rmdir deduplicated/
     rmdir trimmed/
-    cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/qc.sh ${folder}
-    sh qc.sh
-    cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/cr_epic2.sh ${folder}
+    sh /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/qc.sh
     if $downstream; then
-        sh cr_epic2.sh
+        sh /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/cr_epic2.sh
     else
-        sh cr_epic2.sh 0.01 1 20 silence
+        sh /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/cr_epic2.sh 0.01 1 20 silence
     fi
     rm ${folder}/meta.txt
 fi

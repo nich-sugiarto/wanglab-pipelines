@@ -12,7 +12,7 @@ mkdir -p diffBind
 mkdir -p PBS
 mkdir -p log
 
-folder=$(cd "$(dirname "$0")";pwd)  # Stores current folder path as directory
+folder=$(pwd)  # Stores current folder path as directory
 
 # If a name is not provided
 if [ -z "$1" ]; then 

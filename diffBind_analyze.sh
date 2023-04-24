@@ -41,7 +41,7 @@ mkdir -p log
 subfolder="diffBind/${dbObj%_*}/${samp}_over_${control}_${dbObj#*_}"
 mkdir -p ${subfolder}
 
-folder=$(cd "$(dirname "$0")";pwd)
+folder=$(pwd)
 
 cat >${folder}/PBS/${samp}over${control}_$dbObj'.R' <<EOF
 # Load libraries
@@ -170,9 +170,9 @@ Rscript ./PBS/${samp}over${control}_$dbObj'.R'
 tail -n +2 "${subfolder}/unchanged_long.bed" > ${subfolder}/unchanged.bed
 rm ${subfolder}/unchanged_long.bed
 
-cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/downstreamDiffBind/diffBind_HomerMotif.sh ${folder}
+cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/backend/downstreamDiffBind/diffBind_HomerMotif.sh ${folder}
 sh diffBind_HomerMotif.sh ${subfolder}
-cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/downstreamDiffBind/diffBind_ChIPseeker.sh ${folder}
+cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/backend/downstreamDiffBind/diffBind_ChIPseeker.sh ${folder}
 sh diffBind_ChIPseeker.sh ${subfolder}
 EOF
 

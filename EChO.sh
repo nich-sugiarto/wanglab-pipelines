@@ -5,7 +5,7 @@
 
 # Script automatically generated using the "slouch" command on Tue Aug  9 16:36:50 EDT 2022
 
-folder=$(cd "$(dirname "$0")";pwd)  # Stores current folder as a variable
+folder=$(pwd)  # Stores current folder as a variable
 
 # Set up required files
 mkdir -p PBS

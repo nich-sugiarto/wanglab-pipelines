@@ -13,7 +13,7 @@ if [ -z "$1" ]; then
 fi
 
 target=$1
-folder=$(cd "$(dirname "$0")";pwd)  # Stores current folder as a variable
+folder=$(pwd)  # Stores current folder as a variable
 
 # Setup - Generate required folders
 mkdir -p PBS

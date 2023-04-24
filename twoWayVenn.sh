@@ -19,7 +19,7 @@ if [ -z "$1" ]; then
   exit 1
 fi
 
-folder=$(cd "$(dirname "$0")";pwd)  # Save the current folder's location
+folder=$(pwd)  # Save the current folder's location
 libraryText=$1  # The passed in file
 
 OLDIFS=$IFS

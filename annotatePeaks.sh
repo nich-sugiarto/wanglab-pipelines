@@ -7,7 +7,7 @@
 # Annotates bed files with the nearest gene, distance to said gene (if applicable), functional region, and other relevant information
 # Done using Homer's annotatePeaks function
 
-folder=$(cd "$(dirname "$0")";pwd)  # Save current folder as a variable
+folder=$(pwd)  # Save current folder as a variable
 
 #  If a name is not provided
 if [ -z "$1" ]; then 

@@ -43,7 +43,7 @@ mkdir -p log
 mkdir -p mergedBed
 mkdir -p mergedHeatmaps
 
-folder=$(cd "$(dirname "$0")";pwd)
+folder=$(pwd)
 
 count=$(find ./mergedBam -mindepth 1 -type f -name "*_sortedMerged.bam" -printf x | wc -c)  # Finds total number of files matching extension. CHANGE FOR FILE EXTENSION
 
@@ -127,10 +127,8 @@ echo "${base} completed!" >> ${folder}/'pcMeta.txt'
 currLine=\$(wc -l < ${folder}/pcMeta.txt)
 if ((\$currLine == $count)); then
     source activate base
-    cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/homerMotif.sh ${folder}
-    sh homerMotif.sh mergedBed
-    cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/ChIPseeker.sh ${folder}
-    sh ChIPseeker.sh mergedBed
+    sh /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/homerMotif.sh mergedBed
+    sh /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/ChIPseeker.sh mergedBed
     rm ${folder}/pcMeta.txt
 fi
 EOF

@@ -11,7 +11,7 @@
 
 source /dartfs-hpc/rc/lab/W/WangX/sharedconda/miniconda/etc/profile.d/conda.sh
 
-folder=$(cd "$(dirname "$0")";pwd)
+folder=$(pwd)
 
 cat >${folder}/PBS/'fastqc.pbs' <<EOF
 #!/bin/bash -l

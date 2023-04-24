@@ -11,7 +11,7 @@ mkdir -p multideseq
 mkdir -p PBS
 mkdir -p log
 
-folder=$(cd "$(dirname "$0")";pwd)  # Save location of current folder
+folder=$(pwd)  # Save location of current folder
 
 # Required libraries
 cat >${folder}/multideseq/multideseq'.R' <<EOF

@@ -11,7 +11,7 @@
 
 # FIXME: Create new, more detailed spreadsheet instead.
 
-folder=$(cd "$(dirname "$0")";pwd)  # Save current folder as a variable
+folder=$(pwd)  # Save current folder as a variable
 
 # Setup - generate required folders
 mkdir -p PBS

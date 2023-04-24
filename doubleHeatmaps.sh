@@ -18,7 +18,7 @@ if [ -z "$1" ]; then
   exit 1
 fi
 
-folder=$(cd "$(dirname "$0")";pwd)
+folder=$(pwd)
 libraryText=$1
 
 # Parses through the provided file
