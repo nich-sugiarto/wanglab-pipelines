@@ -118,9 +118,6 @@ alignmentSieve --ATACshift --bam aligned/${smallBase}.filter.sorted.bam -o align
 samtools sort ${folder}/aligned/${smallBase}.shifted.bam -o ${folder}/aligned/${smallBase}.shifted.nsorted.bam
 samtools index ${folder}/aligned/${smallBase}.shifted.nsorted.bam
 
-samtools sort -n ${folder}/aligned/${smallBase}.shifted.nsorted.bam -o ${folder}/aligned/${smallBase}.sortQuery.bam
-samtools index ${folder}/aligned/${smallBase}.sortQuery.bam
-
 rm aligned/${smallBase}.filter.bam
 rm aligned/${smallBase}.bam 
 rm aligned/${smallBase}.sam
@@ -131,17 +128,12 @@ bamCoverage --bam aligned/${smallBase}.shifted.nsorted.bam -o ${folder}/bigwig/$
 	-bl /dartfs-hpc/rc/lab/W/WangX/Genomes_and_extra/GRCh38/hg38-blacklist.v2.bed \
 	--ignoreForNormalization chrX chrM chrRandom chrUn
 
-Genrich -t ${folder}/aligned/${smallBase}.sortQuery.bam \
-	-o ${folder}/peaks_called/${smallBase}.bed \
-	-j  -y  -r  -e chrM  -v -E \
-	/dartfs-hpc/rc/lab/W/WangX/Genomes_and_extra/GRCh38/hg38-blacklist.v2.bed
-
-rm aligned/${smallBase}.sortQuery*
+macs2 callpeak -f BAMPE -t ${folder}/aligned/${smallBase}.shifted.nsorted.bam -n ${folder}/peaks_called/${smallBase}
 
 computeMatrix reference-point \
 	--referencePoint center \
 	-b 5000 -a 5000 \
-	-R peaks_called/${smallBase}.bed \
+	-R peaks_called/${smallBase}_summits.bed \
 	-S bigwig/${smallBase}_normalized.bw  \
 	-o $folder/heatmap/${smallBase}_center.gz --missingDataAsZero -p max
 
@@ -163,11 +155,6 @@ if ((\$currLine == $count)); then
     rmdir trimmed/
     cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/qc.sh ${folder}
     sh qc.sh
-	### Next 4 lines commented out by ADCM 1/17/23. No reason to run Homer or ChIPseeker on standard ATAC
-	# cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/homerMotif.sh ${folder}
-	# sh homerMotif.sh peaks_called
-	# cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/ChIPseeker.sh ${folder}
-	# sh ChIPseeker.sh peaks_called
     rm ${folder}/meta.txt
 	cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/atac_qc.sh ${folder}
 	sh atac_qc.sh
