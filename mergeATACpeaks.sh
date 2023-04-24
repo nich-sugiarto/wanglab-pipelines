@@ -83,13 +83,7 @@ source activate peakcalling
 
 cd ${folder}
 
-samtools sort -f -n mergedBam/${base}_sortedMerged.bam mergedBam/${base}_nameSorted.bam
-samtools index mergedBam/${base}_nameSorted.bam
-
-Genrich -t ${folder}/mergedBam/${base}_nameSorted.bam \
-	-o ${folder}/mergedBed/${base}.bed \
-	-j  -y  -r  -e chrM  -v -E \
-	/dartfs-hpc/rc/lab/W/WangX/Genomes_and_extra/GRCh38/hg38-blacklist.v2.bed
+macs2 callpeak -f BAMPE -t ${folder}/mergedBam/${base}_sortedMerged.bam -n ${folder}/mergedBed/${base}
 
 # awk '\$9 <= ${fdr} {print \$0}' mergedBed/${base}.bed > mergedBed/${base}_FDR_${fdr}.bed
 
@@ -105,7 +99,7 @@ conda activate alignment
 computeMatrix reference-point \
 	--referencePoint center \
 	-b 5000 -a 5000 \
-	-R mergedBed/${base}.bed \
+	-R mergedBed/${base}_summits.bed \
 	-S mergedBigWig/${base}_merged.bw  \
 	-o $folder/mergedHeatmaps/${base}_center.gz --missingDataAsZero -p max
 
