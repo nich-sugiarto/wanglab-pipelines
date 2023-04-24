@@ -9,6 +9,9 @@
 # Code taken from some Harvard tutorial that I should really refer back to
 #TODO: Remove dependency on annotables -> BioMaRt better supported?
 
+mkdir -p PBS
+mkdir -p log
+
 #  If a name is not provided
 if [ -z "$1" ]; then 
   echo ERROR: TARGET FOLDER WAS NOT SPECIFIED
@@ -109,7 +112,6 @@ dev.off()
 EOF
 
   cat >${folder}/PBS/${base}_ChIPseeker'.pbs' <<EOF
-  
 #!/bin/bash -l
 # Name of the job
 #SBATCH --job-name=ChIPSeeker # Name of the job

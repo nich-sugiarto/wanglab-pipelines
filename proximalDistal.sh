@@ -65,7 +65,7 @@ computeMatrix reference-point \
 	--referencePoint center \
 	-b 5000 -a 5000 \
 	-R distProx/${mark}_TSSproximal.bed distProx/${mark}_TSSdistal.bed \
-	-S $folder/normalized_bw/${mark}_normalized.bw\
+	-S $folder/normalized_bw/${mark}_normalized.bw \
 	-o $folder/TSSheatmap/${mark}_TSS.gz --missingDataAsZero -p max --smartLabels
 
 plotHeatmap -m $folder/TSSheatmap/${mark}_TSS.gz \

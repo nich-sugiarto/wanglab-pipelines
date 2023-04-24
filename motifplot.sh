@@ -1,35 +1,28 @@
-#!/bin/bash
-
-# USAGE: 
-# This pipeline takes in one positional argument:
-# 	$1 - target folder
-
-# This script looks at all the bed files located in the user's desired folder,
-# and runs HOMER's findMotifs program offshore on the discovery HPC. 
-
-# Requires that HOMER is available in you PATH variable
-
-mkdir -p PBS
-mkdir -p log
-
-folder=$(cd "$(dirname "$0")";pwd)
-
-# If a name is not provided
 if [ -z "$1" ]; then 
-  echo ERROR: TARGET FOLDER WAS NOT SPECIFIED
+  echo ERROR: META FILE WAS NOT SPECIFIED
   echo USAGE:
   echo This pipeline takes in one positional argument:
-  echo 	\$1 - target folder
+  echo 	\$1 - target meta file containing sample information
+  echo Where the meta file is tab-delimited, and formated as follows:
+  echo locationOfMetaCSV	DESeqResultTable
   exit 1
 fi
 
-cd $1
+mkdir -p goPlots
+mkdir -p PBS
+mkdir -p log
 
-for file in *.bed; do
-	base=$(basename "$file" ".bed")
-	mkdir -p ${folder}/homer_sizegiven/${base}
+folder=$(cd "$(dirname "$0")";pwd)  # Save current folder as a variable
 
-  cat >${folder}/PBS/${base}_motif_sizegiven'.R' <<EOF
+libraryText=$1
+
+while IFS=$'\t' read -r -a varArray; do
+	metascape=${varArray[0]}  # Location for metascape table
+	de=${varArray[1]}
+
+	mName=$(basename "$metascape" ".csv")
+
+	cat >${folder}/PBS/${mName}'_GO.R' <<EOF
 library(ggplot2)
 library(dplyr)
 library(tidyverse)
@@ -57,7 +50,7 @@ Table <- read.table("knownResults.txt", comment.char="", sep="\t", header = TRUE
 # It reads in the backslash as it is and not its own special character
 # Tbh, just ask me later
 # Returns a list of lists
-cleanNames <- str_split(Table\$motif_name, pattern = \\\\(")  
+cleanNames <- str_split(Table\$motif_name, pattern = "\\\\(")  
 
 # Found this one online. It takes the first sub element from the list of lists
 cleanNames <- sapply(cleanNames, "[[", 1)
@@ -66,16 +59,16 @@ cleanNames <- sapply(cleanNames, "[[", 1)
 Table\$motif_name <- cleanNames
 
 # Version you can paste right into the terminal (minus the comments out ofc)
-# cleanNames <- str_split(Table\$motif_name, pattern = "\\(")
+# cleanNames <- str_split(Table$motif_name, pattern = "\\(")
 # cleanNames <- sapply(cleanNames, "[[", 1)
-# Table\$motif_name <- cleanNames
+# Table$motif_name <- cleanNames
 
 # Version where you can have it all on one line:
-# Table\$motif_name <- sapply(str_split(Table\$motif_name, pattern = "\\\\("), "[[", 1)   
+# Table\$motif_name <- sapply(str_split(Table\$motif_name, pattern = "\\\\("), "[[", 1)
 
 Table_100 <- head(Table,100)
 
-motifLvls <- as.list(Table_100\$motif_name)
+motifLvls <- as.list(Table_100$motif_name)
 
 Plot <- ggplot(data=Table_100, aes(x=factor(motif_name, level = unique(motifLvls)), y=log_p_value)) + 
 	geom_point() +
@@ -94,31 +87,18 @@ filtered_table <- Table_100 %>%
 labeled_plot <- Plot +
 	geom_label_repel(data=filtered_table,
 	mapping = aes(x=factor(motif_name, level = unique(motifLvls)), y=log_p_value, 
-	label = motif_name), min.segment.length = 0.0000001, size = 2) +
-	geom_point(data=filtered_table,aes(x=motif_name, y=log_p_value, color="red"))
-
+	label = motif_name), min.segment.length = 0.0000001, size = 2)
+	
 ggsave("labeledTestPlot.pdf")
-EOF
 
-	cat >${folder}/PBS/${base}_motif_sizegiven'.pbs' <<EOF
-#!/bin/bash -l
+filtered_table$motif_name <- list_motif_names
 
-#SBATCH --job-name=${base}_motifs
-#SBATCH --nodes=1
-#SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=8
-#SBATCH --mem=8G
-#SBATCH --time=16:00:00
-#SBATCH -o ${folder}/log/${base}_motifs_%j.txt -e ${folder}/log/${base}_motifs_%j.err.txt
-# Change to job working directory
-cd ${folder}
-#---------------------End of header---------------------#
 
-findMotifsGenome.pl $1/${base}.bed hg38 homer_sizegiven/${base}/ -size given
+#SEPARATE (for metascape plot)
+# motif names left axis, one for each dot (split string by /, make list, take first element)
+## list = str_split(filtered_table$motif_name, "(")
+## sapply(list,"[[,1)
 
-Rscript ${folder}/PBS/${base}_motif_sizegiven'.R'
+# Log(pvalue) - color <-- pAdj? 
+# Size of dot - % of sequences
 
-EOF
-
-	sbatch ${folder}/PBS/${base}_motif_sizegiven.pbs
-done

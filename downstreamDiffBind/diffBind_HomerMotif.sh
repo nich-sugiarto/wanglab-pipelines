@@ -30,10 +30,11 @@ cd $folder
 cd $1
 
 for file in *.bed; do
-	base=$(basename "$file" ".bed")
-	mkdir -p ${folder}/homer_sizegiven/$1/${base}
+  if [[ ${base} != *"unchanged"*  ]]; then
+	  base=$(basename "$file" ".bed")
+	  mkdir -p ${folder}/homer_sizegiven/$1/${base}
 
-	cat >${folder}/PBS/${base}_motif_sizegiven'.pbs' <<EOF
+	  cat >${folder}/PBS/${base}_motif_sizegiven'.pbs' <<EOF
 #!/bin/bash -l
 
 #SBATCH --job-name=${base}_motifs
@@ -51,4 +52,5 @@ findMotifsGenome.pl $1/${base}.bed hg38 homer_sizegiven/$1/${base}/ -size given
 EOF
 
 	sbatch ${folder}/PBS/${base}_motif_sizegiven.pbs
+  fi
 done

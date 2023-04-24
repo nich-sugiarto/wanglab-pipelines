@@ -32,25 +32,26 @@ if [ -z "$3" ]; then
 fi
 
 if [ -z "$4" ]; then 
-  dbObj="dbObj.rds"
+  dbObj="dbObj"
 fi
 
 # Set up necessary files
 mkdir -p PBS
 mkdir -p log
-mkdir -p diffBind/${samp}_over_${control}
+subfolder="diffBind/${dbObj%_*}/${samp}_over_${control}_${dbObj#*_}"
+mkdir -p ${subfolder}
 
 folder=$(cd "$(dirname "$0")";pwd)
-subfolder="diffBind/${samp}_over_${control}"
 
-cat >${folder}/PBS/${samp}over${control}'.R' <<EOF
+cat >${folder}/PBS/${samp}over${control}_$dbObj'.R' <<EOF
 # Load libraries
 library(DiffBind)
 library(dplyr)
+library(ggplot2)
 
-dbObj <- readRDS("./${dbObj}")
+dbObj <- dba.load(file = "${dbObj}", dir = "diffBind")
 
-dbObj <- dba.contrast(dbObj, contrast=c("${compare}","${samp}","${control}"), design = "~${compare} + Replicate", minMembers = 2)
+dbObj <- dba.contrast(dbObj, contrast=c("${compare}","${samp}","${control}"), design = "~${compare}", minMembers = 2)
 dbObj <- dba.analyze(dbObj, method=DBA_ALL_METHODS)
 
 png(filename = "${subfolder}/DESeq2_volcano.png", height = 1080, width = 1080)
@@ -61,13 +62,55 @@ png(filename = "${subfolder}/edgeR_volcano.png", height = 1080, width = 1080)
 dba.plotVolcano(dbObj, method = DBA_EDGER)
 dev.off()
 
-res_deseq <- dba.report(dbObj, method=DBA_ALL_METHODS, contrast = 1, th=1)
-res_deseq
+res_all <- dba.report(dbObj, method=DBA_ALL_METHODS, contrast = 1, th=1)
+res_all
 
-out <- as.data.frame(res_deseq) 
+out <- as.data.frame(res_all) 
 write.table(out, file="${subfolder}/${samp}over${control}.txt", sep="\t", quote=F, row.names=F)
 
-unchanged <- as.data.frame(res_deseq) %>%
+res_deseq <- as.data.frame(dba.report(dbObj, method=DBA_DESEQ2, contrast = 1, th=1))
+
+# Create a column to denote which genes are upregulated, downregulated, or not significantly changed
+res_deseq <- res_deseq %>% 
+	mutate( threshold_KD = case_when(Fold > 0 & FDR <= 0.05 ~ "Upregulated",
+	Fold < 0 & FDR <= 0.05 ~ "Downregulated",
+	TRUE ~ "Unchanged"))
+
+## Create the volcano plot w/o any labels
+p2 <- ggplot(res_deseq, aes(Fold, -log10(FDR))) +
+		geom_point(aes(color = threshold_KD), size = 2/5) +
+		xlab(expression("log"[2]*"FC")) +  
+		ylab(expression("-log"[10]*"FDR")) +
+		scale_color_manual(values = c("dodgerblue3", "gray50", "firebrick3")) +
+		guides(colour = guide_legend(override.aes = list(size=1.5))) +
+		theme_bw() + theme(legend.position = "none")
+
+pdf("${subfolder}/DESeq2_pVolcano.pdf")
+	print(p2)
+dev.off()
+
+res_edger <- as.data.frame(dba.report(dbObj, method=DBA_EDGER, contrast = 1, th=1))
+
+# Create a column to denote which genes are upregulated, downregulated, or not significantly changed
+res_edger <- res_edger %>% 
+	mutate( threshold_KD = case_when(Fold > 0 & FDR <= 0.05 ~ "Upregulated",
+	Fold < 0 & FDR <= 0.05 ~ "Downregulated",
+	TRUE ~ "Unchanged"))
+
+## Create the volcano plot w/o any labels
+p2 <- ggplot(res_edger, aes(Fold, -log10(FDR))) +
+		geom_point(aes(color = threshold_KD), size = 2/5) +
+		xlab(expression("log"[2]*"FC")) +  
+		ylab(expression("-log"[10]*"FDR")) +
+		scale_color_manual(values = c("dodgerblue3", "gray50", "firebrick3")) +
+		guides(colour = guide_legend(override.aes = list(size=1.5))) +
+		theme_bw() + theme(legend.position = "none")
+
+pdf("${subfolder}/edgeR_pVolcano.pdf")
+	print(p2)
+dev.off()
+
+unchanged <- as.data.frame(res_all) %>%
   filter(FDR > 0.05) %>% 
   select(seqnames, start, end)
 
@@ -107,7 +150,7 @@ dev.off()
 
 EOF
 
-cat >${folder}/PBS/${samp}over${control}.sbatch <<EOF
+cat >${folder}/PBS/${samp}over${control}_$dbObj.sbatch <<EOF
 #!/bin/bash -l
 #SBATCH --job-name=${samp}over${control}
 #SBATCH --nodes=1
@@ -122,7 +165,7 @@ source activate ATACQC
 
 cd ${folder}
 
-Rscript ./PBS/${samp}over${control}'.R'
+Rscript ./PBS/${samp}over${control}_$dbObj'.R'
 
 tail -n +2 "${subfolder}/unchanged_long.bed" > ${subfolder}/unchanged.bed
 rm ${subfolder}/unchanged_long.bed
@@ -133,4 +176,4 @@ cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/downstreamDiffBind/diffBind_ChIPsee
 sh diffBind_ChIPseeker.sh ${subfolder}
 EOF
 
-sbatch ${folder}/PBS/${samp}over${control}.sbatch
+sbatch ${folder}/PBS/${samp}over${control}_$dbObj.sbatch

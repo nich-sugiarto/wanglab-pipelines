@@ -137,7 +137,7 @@ cut -f 6 ${smallBase}_featurecounts_MTfiltered.txt > ${smallBase}_featurecounts_
 
 source deactivate
 source activate deseq
-# Rscript ${smallBase}_RPKM.R
+Rscript ${smallBase}_RPKM.R
 
 echo "${smallBase} completed!" >> ${folder}/'alignMeta.txt'
 

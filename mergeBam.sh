@@ -5,6 +5,7 @@
 # Requires the "alignment" environment, and the "qc" environment (for fastqc and multiqc)
 
 mkdir -p PBS
+mkdir -p log
 mkdir -p mergedBam
 mkdir -p mergedBigWig
 

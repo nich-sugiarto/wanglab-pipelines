@@ -18,7 +18,7 @@ if [ -z "$1" ]; then
   echo 	\$1 - target meta file containing sample information
   echo Meta file shouled be tab-delimited, and formatted as follows:
   echo EXAMPLE:
-  echo diffBindSubfolder	left	right	color	subfolderLocation(optional)
+  echo diffBindSubfolder	left	right	color	subfolderLocation \(optional\)
   exit 1
 fi
 
@@ -35,19 +35,19 @@ while IFS=$'\t' read -r -a varArray; do
 	subfolder=${varArray[4]}  # Location of subfolder to dump heatmaps into
 	IFS=$OLDIFS
 
-mkdir -p triple_heatmaps/${subfolder}
+	mkdir -p triple_heatmaps/${subfolder}
 
-# Strip suffixes to make it nicer
-lc=$(basename "$lColumn" "_merged.bw")
-lc=$(basename "$lc" "_normalized.bw")
+	# Strip suffixes to make it nicer
+	lc=$(basename "$lColumn" "_merged.bw")
+	lc=$(basename "$lc" "_normalized.bw")
 
-rc=$(basename "$rColumn" "_merged.bw")
-rc=$(basename "$rc" "_normalized.bw")
-echo ${lc} ${rc}
+	rc=$(basename "$rColumn" "_merged.bw")
+	rc=$(basename "$rc" "_normalized.bw")
+	name=$(basename ${dbFolder%'/'} "")_tripleHeatmaps
 
-cat >${folder}/PBS/${lc}_${rc}_proximalDistal.pbs <<EOF
+cat >${folder}/PBS/${name}.sbatch <<EOF
 #!/bin/bash
-#SBATCH --job-name=${lc}_${rc}_proximalDistal
+#SBATCH --job-name=${name}
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=8
@@ -105,5 +105,5 @@ plotHeatmap -m triple_heatmaps/${subfolder}/${lc}_${rc}_triple.gz \
 rm -r ${subfolder}/${lc}_${rc}*.gz
 EOF
 
-sbatch ${folder}/PBS/${lc}_${rc}_proximalDistal.pbs
+	sbatch ${folder}/PBS/${lc}_${rc}_proximalDistal.pbs
 done < ${libraryText}

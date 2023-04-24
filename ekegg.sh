@@ -12,7 +12,7 @@ for file in $1/*.bed; do
   base=$(basename "$file" ".bed")
   mkdir -p ${folder}/ChIPseeker/${base}
   cat > ${folder}/PBS/${base}_ChIPseeker.r <<EOF
-
+  
 library(ChIPseeker)
 library(TxDb.Hsapiens.UCSC.hg38.knownGene)
 library(clusterProfiler)
@@ -30,10 +30,6 @@ names(samplefiles) <- c("${base}")
 txdb <- TxDb.Hsapiens.UCSC.hg38.knownGene
 
 peakAnnoList <- lapply(samplefiles, annotatePeak, TxDb=txdb, tssRegion=c(-2000, 2000), verbose=FALSE)
-
-sink("$folder/ChIPseeker/${base}/${base}_annotationsummary.txt")
-peakAnnoList
-sink()
 
 annot <- as.data.frame(peakAnnoList[["${base}"]]@anno)
 # Get unique entrez gene Ids
@@ -65,19 +61,6 @@ cluster_summary_sim <- data.frame(egoSim)
 
 pdf(file = "$folder/ChIPseeker/${base}/${base}_GO.pdf")
 dotplot(ego,showCategory = 20,font.size=6)
-dev.off()
-
-R.utils::setOption("clusterProfiler.download.method","wget")
-ekegg <- enrichKEGG(gene = entrezids,
-                    organism = 'hsa',
-                    pvalueCutoff = 0.05)
-pdf(file = "$folder/ChIPseeker/${base}/${base}_KEGG.pdf")
-dotplot(ekegg,showCategory = 20,font.size=6)
-dev.off()
-
-do = enrichDO(entrezids)
-pdf(file = "$folder/ChIPseeker/${base}/${base}_DO.pdf")
-dotplot(do, showCategory=20,font.size=6)
 dev.off()
 
 R.utils::setOption("clusterProfiler.download.method","wget")

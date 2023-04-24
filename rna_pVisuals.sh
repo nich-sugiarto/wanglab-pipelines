@@ -35,12 +35,14 @@ while IFS=$'\t' read -r -a varArray; do
 
 	folder=$(cd "$(dirname "$0")";pwd)  # Save current folder as a variable
 	cat >${folder}/PBS/${cGene}_${cMark}'_volcano.R' <<EOF
+
 library(ggplot2)
 library(tidyverse)
 library(ggrepel)
 library(knitr)
 library(pheatmap)
 library(RColorBrewer)
+library(wesanderson)
 
 options(ggrepel.max.overlaps = Inf)
 
@@ -159,15 +161,26 @@ annoLbls[!(annoLbls %in% mList)] <- ""
 topLbls <- row.names(hmap)
 topLbls[!(topLbls %in% top_genes_p\$gene)] <- ""
 
-pheatmap(hmap,
+lfc <- filter(gTable, abs(log2FoldChange) >= 1.5, padj <= 0.05,na.rm = TRUE) %>% 
+	data.frame()
+
+normMap <- normCounts %>% 
+	data.frame()
+str(normMap)
+
+normMap <- normMap[row.names(normMap) %in% lfc\$gene, ]
+str(normMap)
+
+pheatmap(normMap,
 	cluster_rows = T,
 	cluster_cols = T,
-	colorRampPalette(rev(brewer.pal(n = 7, name =
+	color = colorRampPalette(rev(brewer.pal(n = 7, name =
   		"RdBu")))(100),
-	show_rownames = T,
+	show_rownames = F,
 	border_color = "white",
 	fontsize = 4,
 	scale = "row",
+	treeheight_row = 0,
 	fontsize_row = 5,
 	fontsize_col = 5,
 	cellwidth = 10, 
@@ -176,7 +189,7 @@ pheatmap(hmap,
 pheatmap(hmap,
 	cluster_rows = T,
 	cluster_cols = T,
-	colorRampPalette(rev(brewer.pal(n = 7, name =
+	color = colorRampPalette(rev(brewer.pal(n = 7, name =
   		"RdBu")))(100),
 	show_rownames = T,
 	border_color = "white",
@@ -191,7 +204,7 @@ pheatmap(hmap,
 pheatmap(hmap,
 	cluster_rows = T,
 	cluster_cols = T,
-	colorRampPalette(rev(brewer.pal(n = 7, name =
+	color = colorRampPalette(rev(brewer.pal(n = 7, name =
   		"RdBu")))(100),
 	show_rownames = T,
 	border_color = "white",
@@ -203,6 +216,51 @@ pheatmap(hmap,
 	cellwidth = 10, 
 	filename = "pVolcanos/${cGene}_t50_heatmap.pdf")
 
+
+pal <- wes_palette("Zissou1", 100, type = "continuous")
+
+pheatmap(normMap,
+	cluster_rows = T,
+	cluster_cols = T,
+	color = pal,
+	show_rownames = F,
+	border_color = "white",
+	fontsize = 4,
+	scale = "row",
+	treeheight_row = 0,
+	fontsize_row = 5,
+	fontsize_col = 5,
+	cellwidth = 10, 
+	filename = "pVolcanos/${cGene}_heatmap_wesAnd.pdf")
+
+pheatmap(hmap,
+	cluster_rows = T,
+	cluster_cols = T,
+	color = pal,
+	show_rownames = T,
+	border_color = "white",
+	fontsize = 4,
+	labels_row = annoLbls,
+	scale = "row",
+	fontsize_row = 5,
+	fontsize_col = 5,
+	cellwidth = 10, 
+	filename = "pVolcanos/${cGene}_${cMark}_heatmap_wesAnd.pdf")
+
+pheatmap(hmap,
+	cluster_rows = T,
+	cluster_cols = T,
+	color = pal,
+	show_rownames = T,
+	border_color = "white",
+	fontsize = 4,
+	labels_row = topLbls,
+	scale = "row",
+	fontsize_row = 5,
+	fontsize_col = 5,
+	cellwidth = 10, 
+	filename = "pVolcanos/${cGene}_t50_heatmap_wesAnd.pdf")
+
 EOF
 
 	cat >${folder}/PBS/${cGene}_${cMark}'_volcano.PBS' <<EOF
@@ -211,7 +269,7 @@ EOF
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=2G
+#SBATCH --mem=8G
 #SBATCH --time=7:00:00
 #SBATCH -o ${folder}/log/${cGene}_${cMark}_volcano_%j.txt -e ${folder}/log/${cGene}_${cMark}_volcano_%j.err.txt
 cd ${folder}

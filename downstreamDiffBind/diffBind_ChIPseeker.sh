@@ -26,15 +26,15 @@ folder=$(cd "$(dirname "$0")";pwd)
 
 for file in $1/*.bed; do
   base=$(basename "$file" ".bed")
-
-  OLDIFS=$IFS
-  IFS='/'     # space is set as delimiter
-  read -ra ADDR <<< "$1"   # str is read into an array as tokens separated by IFS
-  IFS=$OLDIFS
-  subbase=${ADDR[1]}
+  if [[ ${base} != *"unchanged"*  ]]; then
+    OLDIFS=$IFS
+    IFS='/'     # space is set as delimiter
+    read -ra ADDR <<< "$1"   # str is read into an array as tokens separated by IFS
+    IFS=$OLDIFS
+    subbase=${ADDR[1]}
   
-  mkdir -p ${folder}/ChIPseeker/$1/${base}
-  cat > ${folder}/PBS/${subbase}_${base}_ChIPseeker.r <<EOF
+    mkdir -p ${folder}/ChIPseeker/$1/${base}
+    cat > ${folder}/PBS/${subbase}_${base}_ChIPseeker.r <<EOF
 library(ChIPseeker)
 library(TxDb.Hsapiens.UCSC.hg38.knownGene)
 library(clusterProfiler)
@@ -191,5 +191,6 @@ source activate ChIPseeker
 Rscript ${folder}/PBS/${subbase}_${base}_ChIPseeker.r
 EOF
   sbatch ${folder}/PBS/${subbase}_${base}_ChIPseeker.pbs
+fi
 done
 

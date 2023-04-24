@@ -31,10 +31,24 @@ if [ -z "$1" ]; then
   echo "\$3 - counts cutoff (Default 20)"
 elif [ -z "$3" ]; then
   echo "Error. Either pass in all three parameters, or pass in none to use the defaults"
+  echo "Exiting now..."
+  exit 1
 else
   fdr=$1
   lfc=$2
   cnts=$3
+fi
+
+if [ -z "$4" ]; then
+    echo "Proceeding with ChIPSeeker and HOMER analysis after aligment and peakcalling..."
+    downstream=true
+elif [ "$4" == "silence" ]
+    echo Warning: ChIPSeeker and HOMER will NOT be run after alignment and peakcalling...
+    downstream=false
+else
+    echo "Error! Invalid option specified. Either pass in the word "silence", or do not pass in anything at all"
+    echo "Exiting now..."
+    exit 1
 fi
 
 # Setup: Create needed folders
@@ -57,9 +71,9 @@ cat >${folder}/'meta.txt' <<EOF
 EOF
 
 cd aligned
-for file in *_IgG${suffix}; do
+for file in *_IgG_R1${suffix}; do
     igGbase=$(basename "$file" "${suffix}")
-    groupprefix=${igGbase%%_IgG}
+    groupprefix=${igGbase%%_IgG_R1}
     for f in $folder/aligned/${groupprefix}*${suffix}; do
         base=$(basename "$f" "${suffix}")
         if [ "$base" != "$igGbase" ]; then
@@ -129,12 +143,12 @@ echo "${base} completed!" >> ${folder}/'meta.txt'
 currLine=\$(wc -l < ${folder}/meta.txt)
 if ((\$currLine == $count)); then
     source activate base
-    cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/homerMotif.sh ${folder}
-    sh homerMotif.sh epic2
-    cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/ChIPseeker.sh ${folder}
-    sh ChIPseeker.sh epic2
-    cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/EChO.sh ${folder}
-    sh EChO.sh
+    if $downstream; then
+      cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/homerMotif.sh ${folder}
+      sh homerMotif.sh epic2
+      cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/ChIPseeker.sh ${folder}
+      sh ChIPseeker.sh epic2
+    fi
     rm ${folder}/meta.txt
 fi
 EOF

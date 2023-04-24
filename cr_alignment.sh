@@ -16,6 +16,19 @@ mkdir -p aligned
 mkdir -p normalized_bw
 mkdir -p log
 
+if [ -z "$1" ]; then
+    echo "Proceeding with ChIPSeeker and HOMER analysis after aligment and peakcalling..."
+    downstream=true
+elif [ "$1" == "silence" ]; then
+    echo Warning: ChIPSeeker and HOMER will NOT be run after alignment and peakcalling...
+    downstream=false
+else
+    echo "Error! Invalid option specified. Either pass in the word "silence", or do not pass in anything at all"
+    echo "Exiting now..."
+    exit 1
+fi
+
+
 suffix1=_R1_001.fastq.gz
 
 folder=$(cd "$(dirname "$0")";pwd)  # Saves folder as a variable
@@ -164,7 +177,11 @@ if ((\$currLine == $count)); then
     cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/qc.sh ${folder}
     sh qc.sh
     cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/cr_epic2.sh ${folder}
-    sh cr_epic2.sh
+    if $downstream; then
+        sh cr_epic2.sh
+    else
+        sh cr_epic2.sh 0.01 1 20 silence
+    fi
     rm ${folder}/meta.txt
 fi
 EOF
