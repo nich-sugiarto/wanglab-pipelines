@@ -123,7 +123,7 @@ EOF
 #SBATCH --cpus-per-task=1
 
 #Number of memory
-#SBATCH --mem-per-cpu=32GB
+#SBATCH --mem-per-cpu=4GB
 
 # Number of cores, in this case one
 #SBATCH --ntasks-per-node=1

@@ -22,10 +22,9 @@ if [ -z "$1" ]; then
   echo The file should be tab-delimited, and contain the following fields:
   echo categoryForComparison sampleGroup controlGroup  rObjToRead
 fi
+pwd
 
 libraryText=$1  # Passed in file name
-
-cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/diffBind_analyze.sh ./
 
 OLDIFS=$IFS
 while IFS=$'\t' read -r -a varArray; do
@@ -35,5 +34,5 @@ while IFS=$'\t' read -r -a varArray; do
   objName=${varArray[3]}  # Name of object
 	IFS=$OLDIFS
 
-  sh diffBind_analyze.sh ${category} ${sample} ${control} ${objName}
+  sh /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/DiffBind/diffBind_analyze.sh ${category} ${sample} ${control} ${objName}
 done < ${libraryText}

@@ -42,7 +42,7 @@ fi
 if [ -z "$4" ]; then
     echo "Proceeding with ChIPSeeker and HOMER analysis after aligment and peakcalling..."
     downstream=true
-elif [ "$4" == "silence" ]
+elif [ "$4" == "silence" ]; then
     echo Warning: ChIPSeeker and HOMER will NOT be run after alignment and peakcalling...
     downstream=false
 else

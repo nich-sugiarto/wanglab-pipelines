@@ -175,9 +175,9 @@ if ((\$currLine == $count)); then
     rmdir trimmed/
     sh /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/qc.sh
     if $downstream; then
-        sh /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/cr_epic2.sh
+        sh /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/CR/cr_epic2.sh
     else
-        sh /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/cr_epic2.sh 0.01 1 20 silence
+        sh /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/CR/cr_epic2.sh 0.01 1 20 silence
     fi
     rm ${folder}/meta.txt
 fi

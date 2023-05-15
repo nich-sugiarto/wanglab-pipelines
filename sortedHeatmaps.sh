@@ -2,7 +2,6 @@
 
 mkdir -p PBS
 mkdir -p log
-mkdir -p A1A_heatmaps
 
 # Check to makes sure that the appropriate arguments were passed in
 if [ -z "$2" ]; then 

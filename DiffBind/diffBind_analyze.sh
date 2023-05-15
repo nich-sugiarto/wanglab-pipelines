@@ -19,6 +19,8 @@ samp=$2
 control=$3
 dbObj=$4
 
+caps=$(echo "$compare" | tr '[:lower:]' '[:upper:]')
+
 #  All the parameters are not provided
 if [ -z "$3" ]; then 
   echo ERROR: NOT ALL PARAMETERS HAVE BEEN SPECIFIED
@@ -33,6 +35,27 @@ fi
 
 if [ -z "$4" ]; then 
   dbObj="dbObj"
+fi
+
+off=FALSE
+normType=${dbObj#*_}
+if [ "$normType" == Default ]; then
+    norm=""
+  elif [ "$normType" == TMM ]; then
+    norm=DBA_NORM_TMM
+  elif [ "$normType" == RLE ]; then
+    norm=DBA_NORM_RLE
+  elif [ "$normType" == Loess ]; then
+    norm=DBA_NORM_OFFSETS
+    off=TRUE
+else
+  echo ERROR: PROPER NORMALIZATION WAS NOT SPECIFIED
+  echo USAGE:
+  echo This pipeline takes in three positional arguments:
+  echo 	"\$1 - target folder"
+  echo 	"\$2 - Normalization Strategy (Default, TMM, RLE, Loess)"
+  echo 	"\$3 - (Optional) The name of the generated DiffBind object (default is dbObj)"
+  exit 1
 fi
 
 # Set up necessary files
@@ -50,6 +73,11 @@ library(dplyr)
 library(ggplot2)
 
 dbObj <- dba.load(file = "${dbObj}", dir = "diffBind")
+
+mask <- dba.mask(dbObj,DBA_$caps, c("$samp","$control"), combine = "or")
+
+dbObj <- dba(dbObj, mask=mask)
+dba.normalize(dbObj, method = DBA_ALL_METHODS, normalize=$norm, offsets=$off)
 
 dbObj <- dba.contrast(dbObj, contrast=c("${compare}","${samp}","${control}"), design = "~${compare}", minMembers = 2)
 dbObj <- dba.analyze(dbObj, method=DBA_ALL_METHODS)
@@ -147,7 +175,6 @@ dev.off()
 png(filename = "${subfolder}/venn.png", height = 1080, width = 1080)
 dba.plotVenn(dbObj, contrast=1, bDB=TRUE, bGain=TRUE, bLoss=TRUE, bAll=FALSE)
 dev.off()
-
 EOF
 
 cat >${folder}/PBS/${samp}over${control}_$dbObj.sbatch <<EOF
@@ -155,8 +182,8 @@ cat >${folder}/PBS/${samp}over${control}_$dbObj.sbatch <<EOF
 #SBATCH --job-name=${samp}over${control}
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
-#SBATCH --cpus-per-task=8
-#SBATCH --mem=64G
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=8G
 #SBATCH --time=7:00:00
 #SBATCH -o ${folder}/log/${samp}over${control}_%j.txt -e ${folder}/log/${samp}over${control}_%j.err.txt
 
@@ -170,10 +197,8 @@ Rscript ./PBS/${samp}over${control}_$dbObj'.R'
 tail -n +2 "${subfolder}/unchanged_long.bed" > ${subfolder}/unchanged.bed
 rm ${subfolder}/unchanged_long.bed
 
-cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/backend/downstreamDiffBind/diffBind_HomerMotif.sh ${folder}
-sh diffBind_HomerMotif.sh ${subfolder}
-cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/backend/downstreamDiffBind/diffBind_ChIPseeker.sh ${folder}
-sh diffBind_ChIPseeker.sh ${subfolder}
+sh /dartfs-hpc/rc/lab/W/WangX/Nicholas/backend/downstreamDiffBind/diffBind_HomerMotif.sh ${subfolder}
+sh /dartfs-hpc/rc/lab/W/WangX/Nicholas/backend/downstreamDiffBind/diffBind_ChIPseeker.sh ${subfolder}
 EOF
 
-sbatch ${folder}/PBS/${samp}over${control}_$dbObj.sbatch
+sbatch ${folder}/PBS/${samp}over${control}_$dbObj.sbatch 

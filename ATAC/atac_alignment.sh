@@ -8,7 +8,6 @@
 
 # TODO: Add comments for the generated script itself
 
-# Taken from Ruoyun Wang
 
 suffix1=_R1_001.fastq.gz
 
@@ -153,11 +152,9 @@ if ((\$currLine == $count)); then
 	source activate base
     rmdir deduplicated/
     rmdir trimmed/
-    cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/qc.sh ${folder}
-    sh qc.sh
     rm ${folder}/meta.txt
-	cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/atac_qc.sh ${folder}
-	sh atac_qc.sh
+    sh /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/ATAC/qc.sh
+	sh /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/ATAC/atac_qc.sh
 fi
 EOF
 	sbatch ${folder}/PBS/${smallBase}.pbs

@@ -84,7 +84,7 @@ echo "${base} completed!" >> ${folder}/'EChO_meta.txt'
 
 currLine=\$(wc -l < ${folder}/EChO_meta.txt.txt)
 if ((\$currLine == $count)); then
-    cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/plot_EChO.sh ${folder}
+    cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/CR/plot_EChO.sh ${folder}
     sh plot_EChO.sh
     rm ${folder}/EChO_meta.txt
 fi

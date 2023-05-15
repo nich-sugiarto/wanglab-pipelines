@@ -88,9 +88,9 @@ currLine=\$(wc -l < ${folder}/mergeMeta.txt)
 if ((\$currLine == $count)); then
     source activate base
     if [[ $suffix1 == "_R1.shifted.nsorted.bam" ]]; then
-        sh /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/mergeATACpeaks.sh
+        sh /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/ATAC/mergeATACpeaks.sh
     elif [[ $suffix1 == "_R1.sorted.filtered.bam" ]]; then
-        sh /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/mergePeakCalling.sh
+        sh /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/CR/mergePeakCalling.sh
     else
         echo "Something went horribly wrong"
     fi
