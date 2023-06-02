@@ -59,10 +59,7 @@ mkdir -p heatmaps
 
 folder=$(pwd)
 
-count=$(find ./aligned -mindepth 1 -type f -name "*${suffix}" -printf x | wc -c)  # Finds total number of files matching extension. CHANGE FOR FILE EXTENSION
-groupCount=$(find ./aligned -mindepth 1 -type f -name "*IgG*${suffix}" -printf x | wc -c)  # Finds total number of control (IgG) files. CHANGE FOR FILE EXTENSION
-
-((count-=groupCount))
+count=$(find ./aligned -mindepth 1 -type f -name "*${suffix}" -printf x | wc -c)  # Finds total number of files matching extension.
 
 echo "${count} peakcalling to be done..."
 
@@ -71,9 +68,82 @@ cat >${folder}/'meta.txt' <<EOF
 EOF
 
 cd aligned
-for file in *_IgG_R1${suffix}; do
+for file in *_IgG${suffix}; do
     igGbase=$(basename "$file" "${suffix}")
-    groupprefix=${igGbase%%_IgG_R1}
+    groupprefix=${igGbase%%_IgG}
+
+     cat >${folder}/PBS/${igGbase}_epic2'.pbs' <<EOF
+#!/bin/bash -l
+# Name of the job
+#SBATCH --job-name=epic2_${igGbase}  # Name of the job
+
+# Number of compute nodes
+#SBATCH --nodes=1
+
+# Number of cores
+#SBATCH --cpus-per-task=1
+
+#Number of memory
+#SBATCH --mem-per-cpu=32GB
+
+# Number of cores, in this case one
+#SBATCH --ntasks-per-node=1
+
+# Walltime (job duration)
+#SBATCH --time=2:00:00
+
+# Name of the output files to be created. If not specified the outputs will be joined
+#SBATCH --output=${folder}/log/${igGbase}_epic2.%j.out
+#SBATCH --error=${folder}/log/${igGbase}_epic2.%j.err
+################################
+# Enter your code to run below #
+################################
+
+source /dartfs-hpc/rc/lab/W/WangX/sharedconda/miniconda/etc/profile.d/conda.sh
+source activate peakcalling
+
+cd ${folder}
+
+epic2 \
+  --treatment $folder/aligned/${igGbase}${suffix} \
+  --genome hg38 \
+  -o epic2/${igGbase}.bed
+
+awk '\$9 <= ${fdr} {print \$0}' epic2/${igGbase}.bed > epic2/${igGbase}_FDR_${fdr}.bed
+
+awk '\$10 >= ${lfc} {print \$0}' epic2/${igGbase}_FDR_${fdr}.bed > epic2/${igGbase}_log_${lfc}.bed
+
+awk '\$7 > ${cnts} {print \$0}' epic2/${igGbase}_log_${lfc}.bed > epic2/${igGbase}.bed
+
+rm epic2/${igGbase}_FDR_${fdr}.bed
+rm epic2/${igGbase}_log_${lfc}.bed
+
+conda activate alignment
+
+computeMatrix reference-point \
+	--referencePoint center \
+	-b 5000 -a 5000 \
+	-R epic2/${igGbase}.bed \
+	-S normalized_bw/${igGbase}_normalized.bw  \
+	-o $igGbase/heatmaps/${igGbase}_center.gz --missingDataAsZero -p max
+
+plotHeatmap -m $folder/heatmaps/${igGbase}_center.gz \
+	-out $folder/heatmaps/${igGbase}_center.pdf --colorList 'white,darkred'
+
+rm $folder/heatmaps/${igGbase}_center.gz
+
+echo "${igGbase} completed!" >> ${folder}/'meta.txt'
+
+currLine=\$(wc -l < ${folder}/meta.txt)
+if ((\$currLine == $count)); then
+    source activate base
+    if $downstream; then
+      sh /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/homerMotif.sh epic2
+      sh /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/ChIPseeker.sh epic2
+    fi
+    rm ${folder}/meta.txt
+fi
+EOF
     for f in $folder/aligned/${groupprefix}*${suffix}; do
         base=$(basename "$f" "${suffix}")
         if [ "$base" != "$igGbase" ]; then

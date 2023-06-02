@@ -21,7 +21,7 @@ if [ -z "$1" ]; then
   echo Name of DiffBind folder
 fi
 
-folder=$(cd "$(dirname "$0")";pwd)
+folder=$(pwd)
 
 libraryText=$1  # Passed in file name
 

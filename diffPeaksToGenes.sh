@@ -27,7 +27,6 @@ if [ -z "$1" ]; then
   exit 1
 fi
 
-folder=$(cd "$(dirname "$0")";pwd)  # Save location of current folder
 libraryText=$1  # Passed in file name
 
 OLDIFS=$IFS

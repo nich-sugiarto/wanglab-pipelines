@@ -148,10 +148,8 @@ echo "${smallBase} completed!" >> ${folder}/'alignMeta.txt'
 currLine=\$(wc -l < ${folder}/alignMeta.txt)
 echo \${currLine}
 if ((\$currLine == $count)); then
-    cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/qc.sh ${folder}
-    sh qc.sh
-	cp /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/rna_multi.sh ${folder}
-    sh rna_multi.sh
+    sh /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/qc.sh
+	sh /dartfs-hpc/rc/lab/W/WangX/Nicholas/pipes/RNA/rna_multi.sh
     rm ${folder}/alignMeta.txt
 	rmdir clumped/
 	rmdir trimmed/

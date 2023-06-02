@@ -27,7 +27,6 @@ if [ -z "$1" ]; then
   exit 1
 fi
 
-folder=$(cd "$(dirname "$0")";pwd)  # Save location of current folder
 libraryText=$1  # Passed in file name
 
 OLDIFS=$IFS
@@ -45,6 +44,7 @@ library(dplyr)
 library(janitor)
 library(biomaRt)
 library(ggplot2)
+library(ggrepel)
 library(viridis)
 
 getwd()
@@ -62,6 +62,7 @@ print(nrow(matchedGenes))
 print(nrow(matchedPeaks))
 
 diffCorr <- merge(x = matchedPeaks, y = matchedGenes, by.x = "gene_name", by.y = "gene")
+diffCorr <- diffCorr[diffCorr\$gene_name != "", ]
 str(diffCorr)
 
 write.csv(diffCorr, "corrPeakGenes/${name}.csv")
@@ -98,6 +99,24 @@ corrPlot <- ggplot(diffCorr, aes(x=fold, y=log2FoldChange)) +
   geom_text(x = 3, y = 3, label = sum(diffCorr\$fold > 0 & diffCorr\$log2FoldChange > 0), colour = "red") + 
   geom_text(x = -3, y = -3, label = sum(diffCorr\$fold < 0 & diffCorr\$log2FoldChange < 0), colour = "red") + 
   scale_fill_continuous(type = "viridis")
+print(corrPlot)
+dev.off()
+
+pdf("corrPeakGenes/${name}_points.pdf")
+corrPlot <- ggplot(diffCorr, aes(x=fold, y=log2FoldChange)) + 
+  geom_point() + theme_bw() + 
+  geom_smooth(method=lm) +  
+  labs(y = "RNA log2fold change", x = "Peak log2fold change") + 
+  ggtitle(label = paste("${name} Pearson Correlation:", cor(diffCorr\$fold, diffCorr\$log2FoldChange)), 
+    subtitle = paste("Spearman Correlation:", cor(diffCorr\$fold, diffCorr\$log2FoldChange, method = "spearman"))) + 
+  geom_text(x = -3, y = 3, label = sum(diffCorr\$fold < 0 & diffCorr\$log2FoldChange > 0), colour = "red") + 
+  geom_text(x = 3, y = -3, label = sum(diffCorr\$fold > 0 & diffCorr\$log2FoldChange < 0), colour = "red") + 
+  geom_text(x = 3, y = 3, label = sum(diffCorr\$fold > 0 & diffCorr\$log2FoldChange > 0), colour = "red") + 
+  geom_text(x = -3, y = -3, label = sum(diffCorr\$fold < 0 & diffCorr\$log2FoldChange < 0), colour = "red") + 
+  scale_fill_continuous(type = "viridis") + 
+    geom_label_repel(data = diffCorr,
+  	mapping = aes(fold, log2FoldChange, 
+  	label = gene_name), min.segment.length = 0.0000001, size = 2)
 print(corrPlot)
 dev.off()
 EOF

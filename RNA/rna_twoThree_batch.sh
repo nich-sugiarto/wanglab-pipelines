@@ -11,6 +11,10 @@
 # controlGroup	sampleGroup	repDelimiter
 # Where the rep delimiter is how reps are distinguised (e.g. R1,R2,R3 vs Rep1,Rep2,Rep3)
 
+echo "WARNING:"
+echo "I modified some things recently, and I have no idea if they work."
+echo "If you don't see MA plots or volcano plots, please let Nick know"
+
 # Setup - Generate required folders
 mkdir -p PBS
 mkdir -p log
@@ -41,15 +45,13 @@ while IFS=$'\t' read -r -a varArray; do
   # Create the folder specific for this analysis
 	mkdir -p ${folder}/twoFactorComparison/${treatment}_over_${control}_deseq
 	cat >${folder}/twoFactorComparison/${treatment}_over_${control}_deseq/meta.txt<<EOF
-    sampletype
-${treatment}_${delim}1  ${treatment}
-${treatment}_${delim}2  ${treatment}
-${treatment}_${delim}3  ${treatment}
-${treatment}_${delim}4  ${treatment}
-${control}_${delim}1  ${control}
-${control}_${delim}2  ${control}
-${control}_${delim}3  ${control}
-${control}_${delim}4  ${control}
+    sampletype    batch
+${treatment}_${delim}1  ${treatment}  ${delim}1
+${treatment}_${delim}2  ${treatment}  ${delim}2
+${treatment}_${delim}3  ${treatment}  ${delim}3
+${control}_${delim}1  ${control}  ${delim}1
+${control}_${delim}2  ${control}  ${delim}2
+${control}_${delim}3  ${control}  ${delim}3
 EOF
 
 cat >${folder}/twoFactorComparison/${treatment}_over_${control}_deseq/${treatment}_over_${control}_deseq'.R' <<EOF
@@ -78,23 +80,19 @@ cat >${folder}/twoFactorComparison/${treatment}_over_${control}_deseq/${treatmen
   names(data2)[names(data2) == "aligned.${treatment}_${delim}2_sorted.bam"] <- "${treatment}_${delim}2"
   data3 <- read.table("../../counts/${treatment}_${delim}3_featurecounts_Count.txt",header = TRUE,skip=1)
   names(data3)[names(data3) == "aligned.${treatment}_${delim}3_sorted.bam"] <- "${treatment}_${delim}3"
-  data4 <- read.table("../../counts/${control}_${delim}4_featurecounts_Count.txt",header = TRUE,skip=1)
-  names(data4)[names(data4) == "aligned.${control}_${delim}4_sorted.bam"] <- "${control}_${delim}4"
-  
-  data5 <- read.table("../../counts/${control}_${delim}1_featurecounts_Count.txt",header = TRUE,skip=1)
-  names(data5)[names(data5) == "aligned.${control}_${delim}1_sorted.bam"] <- "${control}_${delim}1"
-  data6 <- read.table("../../counts/${control}_${delim}2_featurecounts_Count.txt",header = TRUE,skip=1)
-  names(data6)[names(data6) == "aligned.${control}_${delim}2_sorted.bam"] <- "${control}_${delim}2"
-  data7 <- read.table("../../counts/${control}_${delim}3_featurecounts_Count.txt",header = TRUE,skip=1)
-  names(data7)[names(data7) == "aligned.${control}_${delim}3_sorted.bam"] <- "${control}_${delim}3"
-  data8 <- read.table("../../counts/${control}_${delim}4_featurecounts_Count.txt",header = TRUE,skip=1)
-  names(data8)[names(data8) == "aligned.${control}_${delim}4_sorted.bam"] <- "${control}_${delim}4"
+
+  data4 <- read.table("../../counts/${control}_${delim}1_featurecounts_Count.txt",header = TRUE,skip=1)
+  names(data4)[names(data4) == "aligned.${control}_${delim}1_sorted.bam"] <- "${control}_${delim}1"
+  data5 <- read.table("../../counts/${control}_${delim}2_featurecounts_Count.txt",header = TRUE,skip=1)
+  names(data5)[names(data5) == "aligned.${control}_${delim}2_sorted.bam"] <- "${control}_${delim}2"
+  data6 <- read.table("../../counts/${control}_${delim}3_featurecounts_Count.txt",header = TRUE,skip=1)
+  names(data6)[names(data6) == "aligned.${control}_${delim}3_sorted.bam"] <- "${control}_${delim}3"
 
   name1 <- read.table("../../counts/${treatment}_${delim}1_featurecounts_Name.txt",header = TRUE,skip=1)
 
-  data <- data.frame(data1,data2,data3,data4,data5,data6,data7,data8,row.names = name1\$Geneid)
+  data <- data.frame(data1,data2,data3,data4,data5,data6,row.names = name1\$Geneid)
   meta <- read.table("meta.txt", header=T, row.names=1)
-  dds <- DESeqDataSetFromMatrix(countData = data, colData = meta, design = ~ sampletype)
+  dds <- DESeqDataSetFromMatrix(countData = data, colData = meta, design = ~ batch + sampletype)
 
   dds <- estimateSizeFactors(dds)
   normalized_counts <- counts(dds, normalized=TRUE)
@@ -382,7 +380,7 @@ cat >${folder}/PBS/${treatment}_over_${control}'.pbs' <<EOF
 source activate deseq
 
 cd ${folder}/twoFactorComparison/${treatment}_over_${control}_deseq
-Rscript ${treatment}_${control}_deseq'.R'
+Rscript ${treatment}_over_${control}_deseq'.R'
 EOF
 
 sbatch PBS/${treatment}_over_${control}'.pbs'

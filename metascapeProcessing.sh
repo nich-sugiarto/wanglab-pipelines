@@ -55,7 +55,7 @@ goLvls <- as.list(go\$description)
 goPlot <- ggplot(data = go , aes(x = x_in_go , y =factor(description, level = unique(goLvls)), 
 	color = log_p, size = x_gene_in_go_and_hit_list)) + 
 	geom_point() + theme_bw() + ylab("") + xlab("% in GO") + 
-	labs(color = "pAdj", size = "# Genes in GO and Hit List") + xlim(0, 8) +
+	labs(color = "pAdj", size = "# Genes in GO and Hit List") +
 	scale_color_viridis(option="viridis", direction = 1) + 
 	ggtitle("GO enrichment analysis")
 

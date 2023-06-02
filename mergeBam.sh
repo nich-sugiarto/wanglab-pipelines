@@ -71,6 +71,9 @@ samtools index mergedBam/${base}_merged.bam
 samtools sort mergedBam/${base}_merged.bam -o mergedBam/${base}_sortedMerged.bam
 samtools index mergedBam/${base}_sortedMerged.bam
 
+rm mergedBam/${base}_merged.bam
+rm mergedBam/${base}_merged.bam.bai
+
 bamCoverage \
     --bam mergedBam/${base}_sortedMerged.bam \
     -o mergedBigWig/${base}_merged.bw \
@@ -78,9 +81,6 @@ bamCoverage \
     --extendReads -of bigwig -p max \
     -bl /dartfs-hpc/rc/lab/W/WangX/Genomes_and_extra/GRCh38/hg38-blacklist.v2.bed \
     --ignoreForNormalization chrX chrM chrRandom chrUn
-
-rm mergedBam/${base}_merged.bam
-rm mergedBam/${base}_merged.bam.bai
 
 echo "${base} completed!" >> ${folder}/'mergeMeta.txt'
 

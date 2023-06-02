@@ -57,7 +57,7 @@ Table <- read.table("knownResults.txt", comment.char="", sep="\t", header = TRUE
 # It reads in the backslash as it is and not its own special character
 # Tbh, just ask me later
 # Returns a list of lists
-cleanNames <- str_split(Table\$motif_name, pattern = \\\\(")  
+cleanNames <- str_split(Table\$motif_name, pattern = "\\\\(")  
 
 # Found this one online. It takes the first sub element from the list of lists
 cleanNames <- sapply(cleanNames, "[[", 1)

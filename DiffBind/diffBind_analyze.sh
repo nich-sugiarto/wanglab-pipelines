@@ -38,7 +38,7 @@ if [ -z "$4" ]; then
 fi
 
 off=FALSE
-normType=${dbObj#*_}
+normType=${dbObj##*_}
 if [ "$normType" == Default ]; then
     norm=""
   elif [ "$normType" == TMM ]; then
